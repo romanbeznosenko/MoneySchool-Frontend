@@ -14,6 +14,8 @@ import {
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import { useNavigate } from 'react-router-dom';
+
 
 import { useLogin } from '../hooks/useLogin';
 
@@ -27,6 +29,8 @@ export default function LoginForm({ onSuccess, onNavigateToRegister }) {
     const [password, setPassword] = useState('');
     const [staySignedIn, setStaySignedIn] = useState(false);
     const [localError, setLocalError] = useState(null);
+    const navigate = useNavigate();
+
 
     const { handleLogin, loading, error: apiError, success, clearMessages } = useLogin();
     const error = apiError || localError;
@@ -56,16 +60,11 @@ export default function LoginForm({ onSuccess, onNavigateToRegister }) {
         }
 
         try {
-            // Component sends simple parameters to hook
-            // Hook uses service layer which handles DTOs
             await handleLogin(email, password, (responseDto) => {
-                // responseDto is AuthResponseDto from service layer
                 console.log('Login response:', responseDto);
 
-                // Handle stay signed in
                 if (staySignedIn) {
                     sessionStorage.setItem('staySignedIn', 'true');
-                    // Store user info if needed
                     if (responseDto.user) {
                         sessionStorage.setItem('user', JSON.stringify(responseDto.user));
                     }
@@ -78,33 +77,6 @@ export default function LoginForm({ onSuccess, onNavigateToRegister }) {
         } catch (err) {
             console.error('Login failed:', err);
         }
-    };
-
-    const handleDemoLogin = async () => {
-        const demoEmail = 'demo@example.com';
-        const demoPassword = 'password';
-        setEmail(demoEmail);
-        setPassword(demoPassword);
-        setLocalError(null);
-
-        try {
-            await handleLogin(demoEmail, demoPassword, (responseDto) => {
-                onSuccess?.(responseDto);
-            });
-        } catch (err) {
-            console.error('Demo login failed:', err);
-        }
-    };
-
-    const handleFillDemoEmail = () => {
-        setEmail('demo@example.com');
-        setTimeout(() => {
-            document.getElementById('password')?.focus();
-        }, 100);
-    };
-
-    const handleFillDemoPassword = () => {
-        setPassword('password');
     };
 
     return (
@@ -126,9 +98,6 @@ export default function LoginForm({ onSuccess, onNavigateToRegister }) {
                 <Box sx={{ mb: 4 }}>
                     <Typography variant="h4" component="h1" gutterBottom>
                         Welcome back
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                        Sign in to your account to continue
                     </Typography>
                 </Box>
 
@@ -215,7 +184,7 @@ export default function LoginForm({ onSuccess, onNavigateToRegister }) {
                                 component="button"
                                 type="button"
                                 variant="body2"
-                                onClick={onNavigateToRegister}
+                                onClick={() => navigate("/register")}
                                 disabled={loading}
                                 sx={{ fontWeight: 600, cursor: 'pointer' }}
                             >
@@ -224,62 +193,6 @@ export default function LoginForm({ onSuccess, onNavigateToRegister }) {
                         </Typography>
                     </Box>
                 </Box>
-
-                <Divider sx={{ my: 3 }} />
-
-                <Paper
-                    variant="outlined"
-                    sx={{
-                        p: 2,
-                        bgcolor: '#f3f3f5',
-                        borderColor: 'rgba(0, 0, 0, 0.1)',
-                        borderRadius: '0.625rem',
-                    }}
-                >
-                    <Typography variant="body2" fontWeight={500} color="#030213" gutterBottom>
-                        Demo credentials:
-                    </Typography>
-
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, mb: 2 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Typography variant="body2" color="#717182">
-                                Email: demo@example.com
-                            </Typography>
-                            <Button
-                                size="small"
-                                onClick={handleFillDemoEmail}
-                                disabled={loading}
-                                sx={{ minWidth: 'auto', p: 0.5, fontSize: '0.75rem' }}
-                            >
-                                Fill
-                            </Button>
-                        </Box>
-
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Typography variant="body2" color="#717182">
-                                Password: password
-                            </Typography>
-                            <Button
-                                size="small"
-                                onClick={handleFillDemoPassword}
-                                disabled={loading}
-                                sx={{ minWidth: 'auto', p: 0.5, fontSize: '0.75rem' }}
-                            >
-                                Fill
-                            </Button>
-                        </Box>
-                    </Box>
-
-                    <Button
-                        fullWidth
-                        variant="outlined"
-                        onClick={handleDemoLogin}
-                        disabled={loading}
-                        sx={{ mt: 1 }}
-                    >
-                        Login with Demo Account
-                    </Button>
-                </Paper>
             </Paper>
         </motion.div>
     );
