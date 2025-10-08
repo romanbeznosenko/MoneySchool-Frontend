@@ -3,7 +3,7 @@ import { Box } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import LoginForm from './components/LoginForm';
 import Dashboard from './components/Dashboard';
-import { getCsrfToken } from './services/api/authApi';
+// import { getCsrfToken } from './services/api/authApi';
 
 const pageVariants = {
   initial: { opacity: 0, y: 20 },

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { loginApi } from '../services/api/authApi';
+import { authService } from '../services/authService';
 
 export const useLogin = () => {
     const [loading, setLoading] = useState(false);
@@ -12,15 +12,16 @@ export const useLogin = () => {
         setSuccess('');
 
         try {
-            const data = await loginApi(email, password);
+            const responseDto = await authService.login(email, password);
+
             setSuccess('Login successful!');
 
-            if (onSuccess) onSuccess(data);
+            if (onSuccess) onSuccess(responseDto);
 
-            return data;
-        } catch (err) {
-            setError(err.message || 'Login failed');
-            throw err;
+            return responseDto;
+        } catch (errorDto) {
+            setError(errorDto.message);
+            throw errorDto;
         } finally {
             setLoading(false);
         }

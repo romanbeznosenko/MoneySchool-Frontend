@@ -31,7 +31,6 @@ export default function LoginForm({ onSuccess, onNavigateToRegister }) {
     const { handleLogin, loading, error: apiError, success, clearMessages } = useLogin();
     const error = apiError || localError;
 
-    // Auto-clear messages after a short delay
     useEffect(() => {
         if (error || success) {
             const timer = setTimeout(() => {
@@ -57,13 +56,24 @@ export default function LoginForm({ onSuccess, onNavigateToRegister }) {
         }
 
         try {
-            await handleLogin(email, password, () => {
+            // Component sends simple parameters to hook
+            // Hook uses service layer which handles DTOs
+            await handleLogin(email, password, (responseDto) => {
+                // responseDto is AuthResponseDto from service layer
+                console.log('Login response:', responseDto);
+
+                // Handle stay signed in
                 if (staySignedIn) {
-                    localStorage.setItem('staySignedIn', 'true');
+                    sessionStorage.setItem('staySignedIn', 'true');
+                    // Store user info if needed
+                    if (responseDto.user) {
+                        sessionStorage.setItem('user', JSON.stringify(responseDto.user));
+                    }
                 } else {
-                    localStorage.removeItem('staySignedIn');
+                    sessionStorage.removeItem('staySignedIn');
                 }
-                onSuccess?.();
+
+                onSuccess?.(responseDto);
             });
         } catch (err) {
             console.error('Login failed:', err);
@@ -78,8 +88,8 @@ export default function LoginForm({ onSuccess, onNavigateToRegister }) {
         setLocalError(null);
 
         try {
-            await handleLogin(demoEmail, demoPassword, () => {
-                onSuccess?.();
+            await handleLogin(demoEmail, demoPassword, (responseDto) => {
+                onSuccess?.(responseDto);
             });
         } catch (err) {
             console.error('Demo login failed:', err);
