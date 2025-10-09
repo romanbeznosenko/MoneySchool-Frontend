@@ -139,17 +139,19 @@ export default function Dashboard({ onLogout }) {
     };
 
     const handleStudentDelete = async (studentId) => {
+        console.log('handleStudentDelete called with ID:', studentId);
         try {
-            console.log('Attempting to delete student:', studentId);
+            await studentService.deleteStudent(studentId);
 
-            const response = await studentService.deleteStudent(studentId);
+            console.log('Delete successful, refreshing list...');
 
-            alert('Delete functionality is not yet implemented on the backend. This feature will be available soon.');
+            const response = await studentService.getUserStudents(1, 10);
+            setStudents(response.students);
 
-            console.log('Delete response:', response);
+            console.log('Student deleted and list refreshed successfully');
         } catch (err) {
             console.error('Failed to delete student:', err);
-            alert('An error occurred while attempting to delete the student.');
+            alert(`Failed to delete student: ${err.message}`);
         }
     };
 
@@ -489,7 +491,7 @@ export default function Dashboard({ onLogout }) {
                 open={studentDetailsDialogOpen}
                 onClose={() => setStudentDetailsDialogOpen(false)}
                 getInitials={null}
-                onEdit={handleStudentEdit} 
+                onEdit={handleStudentEdit}
                 onDelete={handleStudentDelete}
             />
         </Box>

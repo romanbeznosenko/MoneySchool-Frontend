@@ -21,7 +21,7 @@ export const studentApi = {
     },
 
     deleteStudent: async (studentId) => {
-        console.log('Delete student called for ID:', studentId);
-        throw new Error('Delete functionality not yet implemented on backend');
+        const response = await apiClient.delete(`/api/student/${studentId}`);
+        return response.data;
     },
 }

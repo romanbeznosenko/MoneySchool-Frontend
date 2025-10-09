@@ -104,13 +104,12 @@ export const studentService = {
                 throw new Error("Student ID is required");
             }
 
-            console.log('Delete student requested for ID:', studentId);
-            console.log('Note: Delete functionality is not yet implemented on the backend');
+            console.log('Deleting student with ID:', studentId);
 
-            return {
-                success: true,
-                message: 'Delete functionality will be available soon',
-            };
+            const apiResponse = await studentApi.deleteStudent(studentId);
+
+            console.log('Student deleted successfully:', apiResponse.message);
+            return apiResponse;
         } catch (error) {
             console.error("Delete student service error:", error);
             throw new ErrorResponseDto(
