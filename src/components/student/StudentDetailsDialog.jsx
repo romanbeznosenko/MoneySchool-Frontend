@@ -153,7 +153,6 @@ export default function StudentDetailsDialog({
     const age = calculateAge(student.birthDate);
     const initials = getInitials ? getInitials(fullName) : fullName.charAt(0).toUpperCase();
 
-    // Calculate max date (today) and min date
     const today = new Date().toISOString().split('T')[0];
     const minDate = new Date();
     minDate.setFullYear(minDate.getFullYear() - 100);
