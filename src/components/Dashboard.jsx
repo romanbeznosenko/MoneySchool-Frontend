@@ -23,6 +23,7 @@ import { userService } from '../services/userService';
 import StudentCard from './student/StudentCard';
 import { studentService } from './../services/studentService';
 import AddStudentDialog from './student/AddStudentDialog';
+import StudentDetailsDialog from './student/StudentDetailsDialog';
 
 const cardVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -44,6 +45,8 @@ export default function Dashboard({ onLogout }) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [addStudentDialogOpen, setAddStudentDialogOpen] = useState(false);
+    const [selectedStudent, setSelectedStudent] = useState(null);
+    const [studentDetailsDialogOpen, setStudentDetailsDialogOpen] = useState(false);
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -94,6 +97,59 @@ export default function Dashboard({ onLogout }) {
             console.error('Failed to refresh students:', err);
         } finally {
             setStudentsLoading(false);
+        }
+    };
+
+    const handleStudentClick = (student) => {
+        console.log('Student clicked:', student);
+        setSelectedStudent({
+            id: student.id,
+            firstName: student.firstName,
+            lastName: student.lastName,
+            birthDate: student.birthDate,
+            avatar: student.avatar,
+            classes: student.classes || [],
+        });
+        setStudentDetailsDialogOpen(true);
+    };
+
+    const handleStudentEdit = async (studentId, updates) => {
+        try {
+            await studentService.updateStudent(studentId, updates);
+
+            const response = await studentService.getUserStudents(1, 10);
+            setStudents(response.students);
+
+            const updatedStudent = response.students.find(s => s.id === studentId);
+            if (updatedStudent) {
+                setSelectedStudent({
+                    id: updatedStudent.id,
+                    firstName: updatedStudent.firstName,
+                    lastName: updatedStudent.lastName,
+                    birthDate: updatedStudent.birthDate,
+                    avatar: updatedStudent.avatar,
+                    classes: updatedStudent.classes || [],
+                });
+            }
+
+            console.log('Student updated successfully');
+        } catch (err) {
+            console.error('Failed to update student:', err);
+        }
+    };
+
+    const handleStudentDelete = async (studentId) => {
+        try {
+            console.log('Attempting to delete student:', studentId);
+
+            const response = await studentService.deleteStudent(studentId);
+
+            alert('Delete functionality is not yet implemented on the backend. This feature will be available soon.');
+
+            console.log('Delete response:', response);
+        } catch (err) {
+            console.error('Failed to delete student:', err);
+            alert('An error occurred while attempting to delete the student.');
         }
     };
 
@@ -246,25 +302,35 @@ export default function Dashboard({ onLogout }) {
                                 </Box>
 
                                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                                    {students.map((student, index) => (
-                                        <motion.div
-                                            key={student.id}
-                                            initial={{ opacity: 0, x: -20 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            transition={{ delay: 0.2 + index * 0.1 }}
-                                        >
-                                            <StudentCard
-                                                student={{
-                                                    id: student.id,
-                                                    name: student.fullName,
-                                                    age: student.age,
-                                                    avatar: student.avatar,
-                                                }}
-                                                getInitials={null}
-                                                onClick={() => console.log('Clicked student:', student)}
-                                            />
-                                        </motion.div>
-                                    ))}
+                                    {studentsLoading ? (
+                                        <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                                            <CircularProgress />
+                                        </Box>
+                                    ) : students.length === 0 ? (
+                                        <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
+                                            No students found. Add your first student!
+                                        </Typography>
+                                    ) : (
+                                        students.map((student, index) => (
+                                            <motion.div
+                                                key={student.id}
+                                                initial={{ opacity: 0, x: -20 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                transition={{ delay: 0.2 + index * 0.1 }}
+                                            >
+                                                <StudentCard
+                                                    student={{
+                                                        id: student.id,
+                                                        name: student.fullName,
+                                                        age: student.age,
+                                                        avatar: student.avatar,
+                                                    }}
+                                                    getInitials={null}
+                                                    onClick={() => handleStudentClick(student)}
+                                                />
+                                            </motion.div>
+                                        ))
+                                    )}
                                 </Box>
                             </Paper>
                         </motion.div>
@@ -416,6 +482,15 @@ export default function Dashboard({ onLogout }) {
                 open={addStudentDialogOpen}
                 onClose={() => setAddStudentDialogOpen(false)}
                 onStudentAdded={handleStudentAdded}
+            />
+
+            <StudentDetailsDialog
+                student={selectedStudent}
+                open={studentDetailsDialogOpen}
+                onClose={() => setStudentDetailsDialogOpen(false)}
+                getInitials={null}
+                onEdit={handleStudentEdit} 
+                onDelete={handleStudentDelete}
             />
         </Box>
     );

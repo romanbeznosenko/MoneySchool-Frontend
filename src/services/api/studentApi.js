@@ -13,5 +13,15 @@ export const studentApi = {
             }
         );
         return response.data;
-    }
+    },
+
+    updateStudent: async (studentId, updates) => {
+        const response = await apiClient.put(`/api/student/${studentId}`, updates);
+        return response.data;
+    },
+
+    deleteStudent: async (studentId) => {
+        console.log('Delete student called for ID:', studentId);
+        throw new Error('Delete functionality not yet implemented on backend');
+    },
 }
