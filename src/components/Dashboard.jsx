@@ -20,10 +20,14 @@ import AddIcon from '@mui/icons-material/Add';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import GroupIcon from '@mui/icons-material/Group';
 import { userService } from '../services/userService';
-import StudentCard from './student/StudentCard';
-import { studentService } from './../services/studentService';
+import { studentService } from '../services/studentService';
+import { classService } from "../services/classService"
+import StudentCard, { getInitialsFromName } from './student/StudentCard';
 import AddStudentDialog from './student/AddStudentDialog';
 import StudentDetailsDialog from './student/StudentDetailsDialog';
+import ClassCard from './class/ClassCard';
+import AddClassDialog from './class/AddClassDialog';
+import ClassDetailsDialog from "./class/ClassDetailsDialog"
 
 const cardVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -41,13 +45,22 @@ export default function Dashboard({ onLogout }) {
     const [classesTab, setClassesTab] = useState(0);
     const [user, setUser] = useState(null);
     const [students, setStudents] = useState([]);
+    const [classes, setClasses] = useState([]);
     const [studentsLoading, setStudentsLoading] = useState(true);
+    const [classesLoading, setClassesLoading] = useState(true);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+
     const [addStudentDialogOpen, setAddStudentDialogOpen] = useState(false);
+    const [addClassDialogOpen, setAddClassDialogOpen] = useState(false);
+
     const [selectedStudent, setSelectedStudent] = useState(null);
     const [studentDetailsDialogOpen, setStudentDetailsDialogOpen] = useState(false);
 
+    const [selectedClass, setSelectedClass] = useState(null);
+    const [classDetailsDialogOpen, setClassDetailsDialogOpen] = useState(false);
+
+    // Fetch user data
     useEffect(() => {
         const fetchUser = async () => {
             try {
@@ -70,6 +83,7 @@ export default function Dashboard({ onLogout }) {
         fetchUser();
     }, []);
 
+    // Fetch students data
     useEffect(() => {
         const fetchStudents = async () => {
             try {
@@ -88,20 +102,29 @@ export default function Dashboard({ onLogout }) {
         }
     }, [user]);
 
-    const handleStudentAdded = async () => {
-        try {
-            setStudentsLoading(true);
-            const response = await studentService.getUserStudents(1, 10);
-            setStudents(response.students);
-        } catch (err) {
-            console.error('Failed to refresh students:', err);
-        } finally {
-            setStudentsLoading(false);
-        }
-    };
+    // Fetch classes data - refetch when tab changes
+    useEffect(() => {
+        const fetchClasses = async () => {
+            if (!user) return;
 
-    const handleStudentClick = async (student) => {
-    try {
+            try {
+                setClassesLoading(true);
+                // classesTab: 0 = All Classes (isTreasurer: false), 1 = My Treasurer Classes (isTreasurer: true)
+                const isTreasurer = classesTab === 1;
+                const response = await classService.getUserClasses(1, 10, isTreasurer);
+                setClasses(response.classes);
+            } catch (err) {
+                console.error('Failed to fetch classes:', err);
+            } finally {
+                setClassesLoading(false);
+            }
+        };
+
+        fetchClasses();
+    }, [user, classesTab]);
+
+    // Student handlers
+    const handleStudentClick = (student) => {
         console.log('Student clicked:', student);
         setSelectedStudent({
             id: student.id,
@@ -113,10 +136,19 @@ export default function Dashboard({ onLogout }) {
             classes: student.classes || [],
         });
         setStudentDetailsDialogOpen(true);
-    } catch (err) {
-        console.error('Failed to fetch student details:', err);
-    }
-};
+    };
+
+    const handleStudentAdded = async () => {
+        try {
+            setStudentsLoading(true);
+            const response = await studentService.getUserStudents(1, 10);
+            setStudents(response.students);
+        } catch (err) {
+            console.error('Failed to refresh students:', err);
+        } finally {
+            setStudentsLoading(false);
+        }
+    };
 
     const handleStudentEdit = async (studentId, updates) => {
         try {
@@ -133,6 +165,7 @@ export default function Dashboard({ onLogout }) {
                     lastName: updatedStudent.lastName,
                     birthDate: updatedStudent.birthDate,
                     avatar: updatedStudent.avatar,
+                    parent: updatedStudent.parent,
                     classes: updatedStudent.classes || [],
                 });
             }
@@ -140,35 +173,95 @@ export default function Dashboard({ onLogout }) {
             console.log('Student updated successfully');
         } catch (err) {
             console.error('Failed to update student:', err);
+            alert(`Failed to update student: ${err.message}`);
         }
     };
 
     const handleStudentDelete = async (studentId) => {
-        console.log('handleStudentDelete called with ID:', studentId);
         try {
             await studentService.deleteStudent(studentId);
-
-            console.log('Delete successful, refreshing list...');
 
             const response = await studentService.getUserStudents(1, 10);
             setStudents(response.students);
 
-            console.log('Student deleted and list refreshed successfully');
+            console.log('Student deleted successfully');
         } catch (err) {
             console.error('Failed to delete student:', err);
             alert(`Failed to delete student: ${err.message}`);
         }
     };
 
+    // Class handlers
+    const handleClassClick = (classItem) => {
+        console.log('Class clicked:', classItem);
+        setSelectedClass({
+            id: classItem.id,
+            name: classItem.name,
+            memberCount: classItem.memberCount || 0,
+            treasurer: classItem.treasurer,
+            isTreasurer: classItem.isTreasurer,
+        });
+        setClassDetailsDialogOpen(true);
+    };
 
-    const classes = [
-        { id: 1, name: 'Mathematics 101', members: 24, isTreasurer: true },
-        { id: 2, name: 'Science Adventure', members: 18, isTreasurer: true },
-        { id: 3, name: 'English Literature', members: 22, isTreasurer: false },
-    ];
+    const handleClassAdded = async () => {
+        try {
+            setClassesLoading(true);
+            const isTreasurer = classesTab === 1;
+            const response = await classService.getUserClasses(1, 10, isTreasurer);
+            setClasses(response.classes);
+        } catch (err) {
+            console.error('Failed to refresh classes:', err);
+        } finally {
+            setClassesLoading(false);
+        }
+    };
 
-    const treasurerClasses = classes.filter(c => c.isTreasurer);
+    const handleClassEdit = async (classId, updates) => {
+        try {
+            await classService.updateClass(classId, updates);
 
+            const isTreasurer = classesTab === 1;
+            const response = await classService.getUserClasses(1, 10, isTreasurer);
+            setClasses(response.classes);
+
+            const updatedClass = response.classes.find(c => c.id === classId);
+            if (updatedClass) {
+                setSelectedClass({
+                    id: updatedClass.id,
+                    name: updatedClass.name,
+                    memberCount: updatedClass.memberCount || 0,
+                    treasurer: updatedClass.treasurer,
+                    isTreasurer: updatedClass.isTreasurer,
+                });
+            }
+
+            console.log('Class updated successfully');
+        } catch (err) {
+            console.error('Failed to update class:', err);
+            alert(`Failed to update class: ${err.message}`);
+        }
+    };
+
+    const handleClassDelete = async (classId) => {
+        try {
+            await classService.deleteClass(classId);
+
+            const isTreasurer = classesTab === 1;
+            const response = await classService.getUserClasses(1, 10, isTreasurer);
+            setClasses(response.classes);
+
+            console.log('Class deleted successfully');
+        } catch (err) {
+            console.error('Failed to delete class:', err);
+            alert(`Failed to delete class: ${err.message}`);
+        }
+    };
+
+    // Calculate treasurer classes count
+    const treasurerClassesCount = classes.filter(c => c.isTreasurer).length;
+
+    // Loading and error states
     if (loading) {
         return (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
@@ -252,10 +345,10 @@ export default function Dashboard({ onLogout }) {
                             </Avatar>
                             <Box>
                                 <Typography variant="h5" fontWeight={600} gutterBottom>
-                                    {user.name}
+                                    {user?.name || 'User'}
                                 </Typography>
                                 <Typography variant="body1" color="text.secondary">
-                                    {user.email}
+                                    {user?.email || 'No email'}
                                 </Typography>
                             </Box>
                         </Box>
@@ -332,7 +425,7 @@ export default function Dashboard({ onLogout }) {
                                                         age: student.age,
                                                         avatar: student.avatar,
                                                     }}
-                                                    getInitials={null}
+                                                    getInitials={getInitialsFromName}
                                                     onClick={() => handleStudentClick(student)}
                                                 />
                                             </motion.div>
@@ -374,6 +467,7 @@ export default function Dashboard({ onLogout }) {
                                         <Button
                                             variant="contained"
                                             startIcon={<AddIcon />}
+                                            onClick={() => setAddClassDialogOpen(true)}
                                             sx={{
                                                 bgcolor: 'black',
                                                 textTransform: 'none',
@@ -420,7 +514,7 @@ export default function Dashboard({ onLogout }) {
                                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                                 <span>My Treasurer Classes</span>
                                                 <Chip
-                                                    label={treasurerClasses.length}
+                                                    label={classesTab === 1 ? classes.length : treasurerClassesCount}
                                                     size="small"
                                                     sx={{
                                                         height: 20,
@@ -434,57 +528,39 @@ export default function Dashboard({ onLogout }) {
                                 </Tabs>
 
                                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                                    {(classesTab === 0 ? classes : treasurerClasses).map((classItem, index) => (
-                                        <motion.div
-                                            key={classItem.id}
-                                            initial={{ opacity: 0, x: -20 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            transition={{ delay: 0.2 + index * 0.1 }}
-                                        >
-                                            <Paper
-                                                elevation={0}
-                                                sx={{
-                                                    p: 2.5,
-                                                    border: '1px solid',
-                                                    borderColor: 'divider',
-                                                    borderRadius: 2,
-                                                    cursor: 'pointer',
-                                                    transition: 'all 0.2s',
-                                                    '&:hover': {
-                                                        bgcolor: 'rgba(0, 0, 0, 0.02)',
-                                                    },
-                                                }}
+                                    {classesLoading ? (
+                                        <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                                            <CircularProgress />
+                                        </Box>
+                                    ) : classes.length === 0 ? (
+                                        <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
+                                            {classesTab === 0
+                                                ? 'No classes found. Create your first class!'
+                                                : 'You are not a treasurer of any classes yet.'}
+                                        </Typography>
+                                    ) : (
+                                        classes.map((classItem, index) => (
+                                            <motion.div
+                                                key={classItem.id}
+                                                initial={{ opacity: 0, x: -20 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                transition={{ delay: 0.2 + index * 0.1 }}
                                             >
-                                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
-                                                    <Typography variant="body1" fontWeight={500}>
-                                                        {classItem.name}
-                                                    </Typography>
-                                                    {classItem.isTreasurer && (
-                                                        <Chip
-                                                            label="Treasurer"
-                                                            size="small"
-                                                            sx={{
-                                                                bgcolor: 'rgba(0, 0, 0, 0.08)',
-                                                                fontWeight: 500,
-                                                            }}
-                                                        />
-                                                    )}
-                                                </Box>
-                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                    <GroupIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
-                                                    <Typography variant="body2" color="text.secondary">
-                                                        {classItem.members} members
-                                                    </Typography>
-                                                </Box>
-                                            </Paper>
-                                        </motion.div>
-                                    ))}
+                                                <ClassCard
+                                                    classItem={classItem}
+                                                    onClick={() => handleClassClick(classItem)}
+                                                />
+                                            </motion.div>
+                                        ))
+                                    )}
                                 </Box>
                             </Paper>
                         </motion.div>
                     </Grid>
                 </Grid>
             </Container>
+
+            {/* Dialogs */}
             <AddStudentDialog
                 open={addStudentDialogOpen}
                 onClose={() => setAddStudentDialogOpen(false)}
@@ -495,9 +571,23 @@ export default function Dashboard({ onLogout }) {
                 student={selectedStudent}
                 open={studentDetailsDialogOpen}
                 onClose={() => setStudentDetailsDialogOpen(false)}
-                getInitials={null}
+                getInitials={getInitialsFromName}
                 onEdit={handleStudentEdit}
                 onDelete={handleStudentDelete}
+            />
+
+            <AddClassDialog
+                open={addClassDialogOpen}
+                onClose={() => setAddClassDialogOpen(false)}
+                onClassAdded={handleClassAdded}
+            />
+
+            <ClassDetailsDialog
+                classItem={selectedClass}
+                open={classDetailsDialogOpen}
+                onClose={() => setClassDetailsDialogOpen(false)}
+                onEdit={handleClassEdit}
+                onDelete={handleClassDelete}
             />
         </Box>
     );

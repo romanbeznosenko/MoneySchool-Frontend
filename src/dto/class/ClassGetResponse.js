@@ -5,5 +5,7 @@ export class ClassGetResponseDto {
         this.id = data?.id || null;
         this.name = data?.name || '';
         this.treasurer = data?.treasurer ? new UserResponseDto(data.treasurer) : null;
+        this.isTreasurer = data?.isTreasurer || false;
+        this.memberCount = data?.memberCount || 0;
     }
 }
