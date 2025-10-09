@@ -100,7 +100,8 @@ export default function Dashboard({ onLogout }) {
         }
     };
 
-    const handleStudentClick = (student) => {
+    const handleStudentClick = async (student) => {
+    try {
         console.log('Student clicked:', student);
         setSelectedStudent({
             id: student.id,
@@ -108,10 +109,14 @@ export default function Dashboard({ onLogout }) {
             lastName: student.lastName,
             birthDate: student.birthDate,
             avatar: student.avatar,
+            parent: student.parent,
             classes: student.classes || [],
         });
         setStudentDetailsDialogOpen(true);
-    };
+    } catch (err) {
+        console.error('Failed to fetch student details:', err);
+    }
+};
 
     const handleStudentEdit = async (studentId, updates) => {
         try {

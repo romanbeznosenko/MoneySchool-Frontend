@@ -126,7 +126,6 @@ export default function StudentDetailsDialog({
         setIsEditing(false);
     };
 
-    // Calculate age from birth date
     const calculateAge = (birthDate) => {
         const birth = new Date(birthDate);
         const today = new Date();
@@ -140,7 +139,6 @@ export default function StudentDetailsDialog({
         return age;
     };
 
-    // Format date for display
     const formatDate = (dateString) => {
         const date = new Date(dateString);
         return date.toLocaleDateString('en-US', {

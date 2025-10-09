@@ -19,7 +19,6 @@ export function useRegister() {
         } catch (err) {
             console.error('Registration error:', err);
 
-            // Handle specific error cases
             if (err.httpStatus === 409) {
                 setError('An account with this email already exists. Please use a different email or try logging in.');
             } else {

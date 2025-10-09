@@ -1,5 +1,5 @@
-import { CustomResponseDto } from './../CustomResponse';
-import { StudentGetResponseDto } from './StudentGetRequest';
+import { CustomResponseDto } from '../CustomResponse';
+import { StudentGetResponseDto } from './StudentGetResponse';
 
 
 export class StudentGetPageResponseDto extends CustomResponseDto {

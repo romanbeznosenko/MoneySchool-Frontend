@@ -1,5 +1,5 @@
 import { studentApi } from "./api/studentApi";
-import { StudentGetPageResponseDto } from './../dto/student/StudentGetPageRequest';
+import { StudentGetPageResponseDto } from './../dto/student/StudentGetPageResponse';
 import { StudentCreateRequestDto } from './../dto/student/StudentCreateRequest';
 import { StudentEditRequestDto } from "../dto/student/StudentEditRequest";
 import { ErrorResponseDto } from './../dto/ErrorResponse';
