@@ -3,16 +3,8 @@ import { LoginRequestDto } from '../dto/auth/LoginRequest';
 import { RegisterRequestDto } from '../dto/auth/RegisterRequest';
 import { ErrorResponseDto } from '../dto/ErrorResponse';
 import { AuthResponseDto } from '../dto/auth/AuthResponse';
-import { CustomResponseDto } from '../dto/CustomResponse';
-/**
- * Service layer that handles business logic and DTO transformations
- * Components interact with this layer, not directly with the API
- */
+
 export const authService = {
-    /**
-     * Initialize CSRF protection
-     * Should be called once when app starts
-     */
     initializeCsrf: async () => {
         try {
             await authApi.getCsrfToken();
@@ -27,10 +19,8 @@ export const authService = {
         }
     },
 
-    // In authService.js
     login: async (email, password, staySignedIn = false) => {
         try {
-            // Validate inputs
             if (!email || !email.trim()) {
                 throw new Error('Email is required');
             }
@@ -38,13 +28,10 @@ export const authService = {
                 throw new Error('Password is required');
             }
 
-            // Create request DTO with staySignedIn
             const requestDto = new LoginRequestDto(email, password, staySignedIn);
 
-            // Call API - returns CustomResponseObject
             const apiResponse = await authApi.login(requestDto);
 
-            // Transform to response DTO
             const responseDto = new AuthResponseDto(apiResponse);
 
             console.log('Login successful:', responseDto.message);
@@ -58,16 +45,8 @@ export const authService = {
         }
     },
 
-    /**
-     * Register new user
-     * @param {string} email
-     * @param {string} password
-     * @param {string} confirmPassword
-     * @returns {Promise<AuthResponseDto>}
-     */
     register: async (email, password, confirmPassword) => {
         try {
-            // Validate inputs
             if (!email || !email.trim()) {
                 throw new Error('Email is required');
             }
@@ -81,13 +60,10 @@ export const authService = {
                 throw new Error('Password must be at least 8 characters long');
             }
 
-            // Create request DTO (backend doesn't need confirmPassword)
             const requestDto = new RegisterRequestDto(email, password);
 
-            // Call API - returns CustomResponseString
             const apiResponse = await authApi.register(requestDto);
 
-            // Transform to response DTO
             const responseDto = new AuthResponseDto(apiResponse);
 
             console.log('Registration successful:', responseDto.message);
@@ -101,10 +77,6 @@ export const authService = {
         }
     },
 
-    /**
-     * Logout user
-     * @returns {Promise<void>}
-     */
     logout: async () => {
         try {
             await authApi.logout();
@@ -118,16 +90,10 @@ export const authService = {
         }
     },
 
-    /**
-     * Get current user information
-     * @returns {Promise<UserResponseDto>}
-     */
     getCurrentUser: async () => {
         try {
-            // Call API - returns CustomResponseUserResponse
             const apiResponse = await authApi.getCurrentUser();
 
-            // Transform to UserResponseDto
             const userDto = new UserResponseDto(apiResponse.data);
 
             console.log('User data retrieved successfully');

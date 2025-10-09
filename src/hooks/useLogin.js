@@ -12,7 +12,6 @@ export const useLogin = () => {
         setSuccess('');
 
         try {
-            // Pass staySignedIn to the service
             const responseDto = await authService.login(email, password, staySignedIn);
 
             setSuccess('Login successful!');

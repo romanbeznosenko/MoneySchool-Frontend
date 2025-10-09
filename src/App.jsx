@@ -13,7 +13,6 @@ const pageVariants = {
   exit: { opacity: 0, y: -20 }
 };
 
-// Animated Page Wrapper Component
 function AnimatedPage({ children }) {
   const location = useLocation();
 
@@ -33,7 +32,6 @@ function AnimatedPage({ children }) {
   );
 }
 
-// Main App Content Component
 function AppContent() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -42,12 +40,8 @@ function AppContent() {
   useEffect(() => {
     const initializeApp = async () => {
       try {
-        // Initialize CSRF token
-        // await authService.initializeCsrf();
-
-        // FIXED: Check if user data exists (not if it equals 'true')
         const storedUser = sessionStorage.getItem('user');
-        console.log('Stored user on init:', storedUser); // Debug log
+        console.log('Stored user on init:', storedUser);
 
         if (storedUser) {
           setIsAuthenticated(true);
@@ -63,7 +57,7 @@ function AppContent() {
   }, []);
 
   const handleLoginSuccess = (responseDto) => {
-    console.log('handleLoginSuccess called with:', responseDto); // Debug log
+    console.log('handleLoginSuccess called with:', responseDto);
     setIsAuthenticated(true);
     navigate('/dashboard');
   };

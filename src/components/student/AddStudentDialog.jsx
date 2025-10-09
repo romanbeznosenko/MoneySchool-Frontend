@@ -25,7 +25,6 @@ export default function AddStudentDialog({ open, onClose, onStudentAdded }) {
 
     const handleClose = () => {
         if (!loading) {
-            // Reset form
             setFirstName('');
             setLastName('');
             setBirthDate('');
@@ -161,7 +160,6 @@ export default function AddStudentDialog({ open, onClose, onStudentAdded }) {
                             max: today,
                             min: minDateStr,
                         }}
-                        helperText="Format: YYYY-MM-DD"
                     />
                 </DialogContent>
 

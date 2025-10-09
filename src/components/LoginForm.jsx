@@ -58,15 +58,12 @@ export default function LoginForm({ onSuccess }) {
         }
 
         try {
-            // Step 1: Login (creates session on backend)
             const loginResponse = await handleLogin(email, password, staySignedIn);
             console.log('Login response:', loginResponse);
 
-            // Step 2: Fetch user data after successful login
             const userData = await userService.getUser();
             console.log('User data fetched:', userData);
 
-            // Step 3: Store in sessionStorage
             sessionStorage.setItem('user', JSON.stringify(userData));
 
             if (staySignedIn) {
@@ -75,10 +72,8 @@ export default function LoginForm({ onSuccess }) {
                 sessionStorage.removeItem('staySignedIn');
             }
 
-            // Debug: Verify storage
             console.log('Stored in sessionStorage:', sessionStorage.getItem('user'));
 
-            // Step 4: Call onSuccess which will navigate
             onSuccess?.({ user: userData });
 
         } catch (err) {
