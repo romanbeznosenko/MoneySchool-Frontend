@@ -20,6 +20,9 @@ import AddIcon from '@mui/icons-material/Add';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import GroupIcon from '@mui/icons-material/Group';
 import { userService } from '../services/userService';
+import StudentCard from './student/StudentCard';
+import { studentService } from './../services/studentService';
+import AddStudentDialog from './student/AddStudentDialog';
 
 const cardVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -35,10 +38,12 @@ const cardVariants = {
 
 export default function Dashboard({ onLogout }) {
     const [classesTab, setClassesTab] = useState(0);
-    // ADD THESE THREE LINES:
     const [user, setUser] = useState(null);
+    const [students, setStudents] = useState([]);
+    const [studentsLoading, setStudentsLoading] = useState(true);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [addStudentDialogOpen, setAddStudentDialogOpen] = useState(false);
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -50,7 +55,6 @@ export default function Dashboard({ onLogout }) {
                 console.error('Failed to fetch user:', err);
                 setError(err.message);
 
-                // Fallback to sessionStorage if available
                 const storedUser = sessionStorage.getItem('user');
                 if (storedUser) {
                     setUser(JSON.parse(storedUser));
@@ -63,11 +67,36 @@ export default function Dashboard({ onLogout }) {
         fetchUser();
     }, []);
 
-    const students = [
-        { id: 1, name: 'Emma Wilson', age: 12, avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Emma' },
-        { id: 2, name: 'Liam Johnson', age: 13, avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Liam' },
-        { id: 3, name: 'Sophia Davis', age: 11, avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sophia' },
-    ];
+    useEffect(() => {
+        const fetchStudents = async () => {
+            try {
+                setStudentsLoading(true);
+                const response = await studentService.getUserStudents(1, 10);
+                setStudents(response.students);
+            } catch (err) {
+                console.error('Failed to fetch students:', err);
+            } finally {
+                setStudentsLoading(false);
+            }
+        };
+
+        if (user) {
+            fetchStudents();
+        }
+    }, [user]);
+
+    const handleStudentAdded = async () => {
+        try {
+            setStudentsLoading(true);
+            const response = await studentService.getUserStudents(1, 10);
+            setStudents(response.students);
+        } catch (err) {
+            console.error('Failed to refresh students:', err);
+        } finally {
+            setStudentsLoading(false);
+        }
+    };
+
 
     const classes = [
         { id: 1, name: 'Mathematics 101', members: 24, isTreasurer: true },
@@ -77,7 +106,6 @@ export default function Dashboard({ onLogout }) {
 
     const treasurerClasses = classes.filter(c => c.isTreasurer);
 
-    // ADD LOADING STATE:
     if (loading) {
         return (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
@@ -86,7 +114,6 @@ export default function Dashboard({ onLogout }) {
         );
     }
 
-    // ADD ERROR STATE:
     if (error && !user) {
         return (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', p: 3 }}>
@@ -203,6 +230,7 @@ export default function Dashboard({ onLogout }) {
                                     <Button
                                         variant="contained"
                                         startIcon={<AddIcon />}
+                                        onClick={() => setAddStudentDialogOpen(true)}
                                         sx={{
                                             bgcolor: 'black',
                                             textTransform: 'none',
@@ -225,32 +253,16 @@ export default function Dashboard({ onLogout }) {
                                             animate={{ opacity: 1, x: 0 }}
                                             transition={{ delay: 0.2 + index * 0.1 }}
                                         >
-                                            <Paper
-                                                elevation={0}
-                                                sx={{
-                                                    p: 2,
-                                                    border: '1px solid',
-                                                    borderColor: 'divider',
-                                                    borderRadius: 2,
-                                                    cursor: 'pointer',
-                                                    transition: 'all 0.2s',
-                                                    '&:hover': {
-                                                        bgcolor: 'rgba(0, 0, 0, 0.02)',
-                                                    },
+                                            <StudentCard
+                                                student={{
+                                                    id: student.id,
+                                                    name: student.fullName,
+                                                    age: student.age,
+                                                    avatar: student.avatar,
                                                 }}
-                                            >
-                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                                    <Avatar src={student.avatar} sx={{ width: 48, height: 48 }} />
-                                                    <Box>
-                                                        <Typography variant="body1" fontWeight={500}>
-                                                            {student.name}
-                                                        </Typography>
-                                                        <Typography variant="body2" color="text.secondary">
-                                                            Age: {student.age}
-                                                        </Typography>
-                                                    </Box>
-                                                </Box>
-                                            </Paper>
+                                                getInitials={null}
+                                                onClick={() => console.log('Clicked student:', student)}
+                                            />
                                         </motion.div>
                                     ))}
                                 </Box>
@@ -400,6 +412,11 @@ export default function Dashboard({ onLogout }) {
                     </Grid>
                 </Grid>
             </Container>
+            <AddStudentDialog
+                open={addStudentDialogOpen}
+                onClose={() => setAddStudentDialogOpen(false)}
+                onStudentAdded={handleStudentAdded}
+            />
         </Box>
     );
 }

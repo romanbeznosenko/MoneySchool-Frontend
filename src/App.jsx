@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
-import { Box } from '@mui/material';
+import { Box, CircularProgress } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import LoginForm from './components/LoginForm';
 import RegisterForm from './components/RegisterForm';
@@ -45,11 +45,11 @@ function AppContent() {
         // Initialize CSRF token
         // await authService.initializeCsrf();
 
-        // Check if user is already logged in
+        // FIXED: Check if user data exists (not if it equals 'true')
         const storedUser = sessionStorage.getItem('user');
-        const staySignedIn = sessionStorage.getItem('staySignedIn');
+        console.log('Stored user on init:', storedUser); // Debug log
 
-        if (storedUser && staySignedIn === 'true') {
+        if (storedUser) {
           setIsAuthenticated(true);
         }
       } catch (error) {
@@ -63,11 +63,8 @@ function AppContent() {
   }, []);
 
   const handleLoginSuccess = (responseDto) => {
+    console.log('handleLoginSuccess called with:', responseDto); // Debug log
     setIsAuthenticated(true);
-    // Store user in sessionStorage
-    if (responseDto.user) {
-      sessionStorage.setItem('user', JSON.stringify(responseDto.user));
-    }
     navigate('/dashboard');
   };
 
@@ -102,7 +99,7 @@ function AppContent() {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3 }}
         >
-          Loading...
+          <CircularProgress />
         </motion.div>
       </Box>
     );
@@ -130,7 +127,6 @@ function AppContent() {
               <AnimatedPage>
                 <LoginForm
                   onSuccess={handleLoginSuccess}
-                  onNavigateToRegister={() => navigate('/register')}
                 />
               </AnimatedPage>
             </Box>
@@ -157,7 +153,6 @@ function AppContent() {
               <AnimatedPage>
                 <RegisterForm
                   onSuccess={handleRegisterSuccess}
-                  onNavigateToLogin={() => navigate('/login')}
                 />
               </AnimatedPage>
             </Box>

@@ -27,13 +27,7 @@ export const authService = {
         }
     },
 
-    /**
-     * Login user
-     * @param {string} email
-     * @param {string} password
-     * @param {boolean} staySignedIn
-     * @returns {Promise<AuthResponseDto>}
-     */
+    // In authService.js
     login: async (email, password, staySignedIn = false) => {
         try {
             // Validate inputs
@@ -44,7 +38,7 @@ export const authService = {
                 throw new Error('Password is required');
             }
 
-            // Create request DTO
+            // Create request DTO with staySignedIn
             const requestDto = new LoginRequestDto(email, password, staySignedIn);
 
             // Call API - returns CustomResponseObject

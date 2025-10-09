@@ -6,17 +6,16 @@ export const useLogin = () => {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 
-    const handleLogin = async (email, password, onSuccess) => {
+    const handleLogin = async (email, password, staySignedIn) => {
         setLoading(true);
         setError('');
         setSuccess('');
 
         try {
-            const responseDto = await authService.login(email, password);
+            // Pass staySignedIn to the service
+            const responseDto = await authService.login(email, password, staySignedIn);
 
             setSuccess('Login successful!');
-
-            if (onSuccess) onSuccess(responseDto);
 
             return responseDto;
         } catch (errorDto) {

@@ -9,28 +9,26 @@ import {
     Checkbox,
     Alert,
     Link,
-    Divider,
     CircularProgress,
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import { useNavigate } from 'react-router-dom';
 
-
 import { useLogin } from '../hooks/useLogin';
+import { userService } from '../services/userService';
 
 const inputVariants = {
     focus: { scale: 1.02 },
     blur: { scale: 1 },
 };
 
-export default function LoginForm({ onSuccess, onNavigateToRegister }) {
+export default function LoginForm({ onSuccess }) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [staySignedIn, setStaySignedIn] = useState(false);
     const [localError, setLocalError] = useState(null);
     const navigate = useNavigate();
-
 
     const { handleLogin, loading, error: apiError, success, clearMessages } = useLogin();
     const error = apiError || localError;
@@ -43,7 +41,7 @@ export default function LoginForm({ onSuccess, onNavigateToRegister }) {
             }, 3000);
             return () => clearTimeout(timer);
         }
-    }, [error, success]);
+    }, [error, success, clearMessages]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -60,20 +58,29 @@ export default function LoginForm({ onSuccess, onNavigateToRegister }) {
         }
 
         try {
-            await handleLogin(email, password, (responseDto) => {
-                console.log('Login response:', responseDto);
+            // Step 1: Login (creates session on backend)
+            const loginResponse = await handleLogin(email, password, staySignedIn);
+            console.log('Login response:', loginResponse);
 
-                if (staySignedIn) {
-                    sessionStorage.setItem('staySignedIn', 'true');
-                    if (responseDto.user) {
-                        sessionStorage.setItem('user', JSON.stringify(responseDto.user));
-                    }
-                } else {
-                    sessionStorage.removeItem('staySignedIn');
-                }
+            // Step 2: Fetch user data after successful login
+            const userData = await userService.getUser();
+            console.log('User data fetched:', userData);
 
-                onSuccess?.(responseDto);
-            });
+            // Step 3: Store in sessionStorage
+            sessionStorage.setItem('user', JSON.stringify(userData));
+
+            if (staySignedIn) {
+                sessionStorage.setItem('staySignedIn', 'true');
+            } else {
+                sessionStorage.removeItem('staySignedIn');
+            }
+
+            // Debug: Verify storage
+            console.log('Stored in sessionStorage:', sessionStorage.getItem('user'));
+
+            // Step 4: Call onSuccess which will navigate
+            onSuccess?.({ user: userData });
+
         } catch (err) {
             console.error('Login failed:', err);
         }
