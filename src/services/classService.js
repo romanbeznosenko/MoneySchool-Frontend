@@ -1,6 +1,6 @@
 import { classApi } from "./api/classApi";
 import { ClassGetPageResponseDto } from "./../dto/class/ClassGetPageResponse";
-import { ErrorResponseDto } from "../dto/ErrorResponse";
+import { ErrorResponseDto } from "../dto/ErrorResponse"
 import { ClassEditRequestDto } from "../dto/class/ClassEditRequest";
 
 export const classService = {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
     Box,
     Container,
@@ -18,16 +18,15 @@ import { motion } from 'framer-motion';
 import LogoutIcon from '@mui/icons-material/Logout';
 import AddIcon from '@mui/icons-material/Add';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
-import GroupIcon from '@mui/icons-material/Group';
-import { userService } from '../services/userService';
-import { studentService } from '../services/studentService';
-import { classService } from "../services/classService"
 import StudentCard, { getInitialsFromName } from './student/StudentCard';
 import AddStudentDialog from './student/AddStudentDialog';
 import StudentDetailsDialog from './student/StudentDetailsDialog';
 import ClassCard from './class/ClassCard';
 import AddClassDialog from './class/AddClassDialog';
-import ClassDetailsDialog from "./class/ClassDetailsDialog"
+import ClassDetailsDialog from './class/ClassDetailsDialog'
+import { useUser } from './../hooks/useUser';
+import { useStudents } from './../hooks/useStudents';
+import { useClasses } from './../hooks/useClasses'
 
 const cardVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -43,225 +42,46 @@ const cardVariants = {
 
 export default function Dashboard({ onLogout }) {
     const [classesTab, setClassesTab] = useState(0);
-    const [user, setUser] = useState(null);
-    const [students, setStudents] = useState([]);
-    const [classes, setClasses] = useState([]);
-    const [studentsLoading, setStudentsLoading] = useState(true);
-    const [classesLoading, setClassesLoading] = useState(true);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-
     const [addStudentDialogOpen, setAddStudentDialogOpen] = useState(false);
     const [addClassDialogOpen, setAddClassDialogOpen] = useState(false);
-
-    const [selectedStudent, setSelectedStudent] = useState(null);
     const [studentDetailsDialogOpen, setStudentDetailsDialogOpen] = useState(false);
-
-    const [selectedClass, setSelectedClass] = useState(null);
     const [classDetailsDialogOpen, setClassDetailsDialogOpen] = useState(false);
 
-    // Fetch user data
-    useEffect(() => {
-        const fetchUser = async () => {
-            try {
-                setLoading(true);
-                const userData = await userService.getUser();
-                setUser(userData);
-            } catch (err) {
-                console.error('Failed to fetch user:', err);
-                setError(err.message);
+    const { user, loading, error } = useUser();
 
-                const storedUser = sessionStorage.getItem('user');
-                if (storedUser) {
-                    setUser(JSON.parse(storedUser));
-                }
-            } finally {
-                setLoading(false);
-            }
-        };
+    const {
+        students,
+        loading: studentsLoading,
+        selectedStudent,
+        setSelectedStudent,
+        handleStudentClick: handleStudentClickBase,
+        handleStudentAdded,
+        handleStudentEdit,
+        handleStudentDelete,
+    } = useStudents(user);
 
-        fetchUser();
-    }, []);
+    const {
+        classes,
+        loading: classesLoading,
+        selectedClass,
+        setSelectedClass,
+        treasurerClassesCount,
+        handleClassClick: handleClassClickBase,
+        handleClassAdded,
+        handleClassEdit,
+        handleClassDelete,
+    } = useClasses(user, classesTab);
 
-    // Fetch students data
-    useEffect(() => {
-        const fetchStudents = async () => {
-            try {
-                setStudentsLoading(true);
-                const response = await studentService.getUserStudents(1, 10);
-                setStudents(response.students);
-            } catch (err) {
-                console.error('Failed to fetch students:', err);
-            } finally {
-                setStudentsLoading(false);
-            }
-        };
-
-        if (user) {
-            fetchStudents();
-        }
-    }, [user]);
-
-    // Fetch classes data - refetch when tab changes
-    useEffect(() => {
-        const fetchClasses = async () => {
-            if (!user) return;
-
-            try {
-                setClassesLoading(true);
-                // classesTab: 0 = All Classes (isTreasurer: false), 1 = My Treasurer Classes (isTreasurer: true)
-                const isTreasurer = classesTab === 1;
-                const response = await classService.getUserClasses(1, 10, isTreasurer);
-                setClasses(response.classes);
-            } catch (err) {
-                console.error('Failed to fetch classes:', err);
-            } finally {
-                setClassesLoading(false);
-            }
-        };
-
-        fetchClasses();
-    }, [user, classesTab]);
-
-    // Student handlers
     const handleStudentClick = (student) => {
-        console.log('Student clicked:', student);
-        setSelectedStudent({
-            id: student.id,
-            firstName: student.firstName,
-            lastName: student.lastName,
-            birthDate: student.birthDate,
-            avatar: student.avatar,
-            parent: student.parent,
-            classes: student.classes || [],
-        });
+        handleStudentClickBase(student);
         setStudentDetailsDialogOpen(true);
     };
 
-    const handleStudentAdded = async () => {
-        try {
-            setStudentsLoading(true);
-            const response = await studentService.getUserStudents(1, 10);
-            setStudents(response.students);
-        } catch (err) {
-            console.error('Failed to refresh students:', err);
-        } finally {
-            setStudentsLoading(false);
-        }
-    };
-
-    const handleStudentEdit = async (studentId, updates) => {
-        try {
-            await studentService.updateStudent(studentId, updates);
-
-            const response = await studentService.getUserStudents(1, 10);
-            setStudents(response.students);
-
-            const updatedStudent = response.students.find(s => s.id === studentId);
-            if (updatedStudent) {
-                setSelectedStudent({
-                    id: updatedStudent.id,
-                    firstName: updatedStudent.firstName,
-                    lastName: updatedStudent.lastName,
-                    birthDate: updatedStudent.birthDate,
-                    avatar: updatedStudent.avatar,
-                    parent: updatedStudent.parent,
-                    classes: updatedStudent.classes || [],
-                });
-            }
-
-            console.log('Student updated successfully');
-        } catch (err) {
-            console.error('Failed to update student:', err);
-            alert(`Failed to update student: ${err.message}`);
-        }
-    };
-
-    const handleStudentDelete = async (studentId) => {
-        try {
-            await studentService.deleteStudent(studentId);
-
-            const response = await studentService.getUserStudents(1, 10);
-            setStudents(response.students);
-
-            console.log('Student deleted successfully');
-        } catch (err) {
-            console.error('Failed to delete student:', err);
-            alert(`Failed to delete student: ${err.message}`);
-        }
-    };
-
-    // Class handlers
     const handleClassClick = (classItem) => {
-        console.log('Class clicked:', classItem);
-        setSelectedClass({
-            id: classItem.id,
-            name: classItem.name,
-            memberCount: classItem.memberCount || 0,
-            treasurer: classItem.treasurer,
-            isTreasurer: classItem.isTreasurer,
-        });
+        handleClassClickBase(classItem);
         setClassDetailsDialogOpen(true);
     };
 
-    const handleClassAdded = async () => {
-        try {
-            setClassesLoading(true);
-            const isTreasurer = classesTab === 1;
-            const response = await classService.getUserClasses(1, 10, isTreasurer);
-            setClasses(response.classes);
-        } catch (err) {
-            console.error('Failed to refresh classes:', err);
-        } finally {
-            setClassesLoading(false);
-        }
-    };
-
-    const handleClassEdit = async (classId, updates) => {
-        try {
-            await classService.updateClass(classId, updates);
-
-            const isTreasurer = classesTab === 1;
-            const response = await classService.getUserClasses(1, 10, isTreasurer);
-            setClasses(response.classes);
-
-            const updatedClass = response.classes.find(c => c.id === classId);
-            if (updatedClass) {
-                setSelectedClass({
-                    id: updatedClass.id,
-                    name: updatedClass.name,
-                    memberCount: updatedClass.memberCount || 0,
-                    treasurer: updatedClass.treasurer,
-                    isTreasurer: updatedClass.isTreasurer,
-                });
-            }
-
-            console.log('Class updated successfully');
-        } catch (err) {
-            console.error('Failed to update class:', err);
-            alert(`Failed to update class: ${err.message}`);
-        }
-    };
-
-    const handleClassDelete = async (classId) => {
-        try {
-            await classService.deleteClass(classId);
-
-            const isTreasurer = classesTab === 1;
-            const response = await classService.getUserClasses(1, 10, isTreasurer);
-            setClasses(response.classes);
-
-            console.log('Class deleted successfully');
-        } catch (err) {
-            console.error('Failed to delete class:', err);
-            alert(`Failed to delete class: ${err.message}`);
-        }
-    };
-
-    // Calculate treasurer classes count
-    const treasurerClassesCount = classes.filter(c => c.isTreasurer).length;
-
-    // Loading and error states
     if (loading) {
         return (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
