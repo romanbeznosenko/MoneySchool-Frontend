@@ -6,7 +6,6 @@ import { classService } from "../../services/classService";
 
 export default function JoinClassDialog({ open, onClose, onClassJoined, students }) {
     const [selectedStudentId, setSelectedStudentId] = useState(null);
-    const [classId, setClassId] = useState('');
     const [accessCode, setAccessCode] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -16,7 +15,6 @@ export default function JoinClassDialog({ open, onClose, onClassJoined, students
         if (!loading) {
             // Reset form
             setSelectedStudentId(null);
-            setClassId('');
             setAccessCode('');
             setError(null);
             setSuccess(null);
@@ -34,11 +32,6 @@ export default function JoinClassDialog({ open, onClose, onClassJoined, students
             return;
         }
 
-        if (!classId || !classId.trim()) {
-            setError('Please enter a class ID');
-            return;
-        }
-
         if (!accessCode || accessCode.length !== 4) {
             setError('Access code must be exactly 4 digits');
             return;
@@ -53,7 +46,7 @@ export default function JoinClassDialog({ open, onClose, onClassJoined, students
             setLoading(true);
 
             // Call the service to join class
-            const response = await classService.joinClass(classId, selectedStudentId, accessCode);
+            const response = await classService.joinClass(selectedStudentId, accessCode);
 
             setSuccess('Successfully joined the class!');
 
@@ -92,7 +85,7 @@ export default function JoinClassDialog({ open, onClose, onClassJoined, students
                     key="submit"
                     type="primary"
                     onClick={handleSubmit}
-                    disabled={loading || !!success || !selectedStudentId || !classId || !accessCode}
+                    disabled={loading || !!success || !selectedStudentId || !accessCode}
                     style={{ backgroundColor: 'black' }}
                     icon={loading ? <LoadingOutlined /> : null}
                 >
@@ -137,23 +130,6 @@ export default function JoinClassDialog({ open, onClose, onClassJoined, students
                 />
                 <div style={{ marginTop: 8, color: 'rgba(0, 0, 0, 0.45)', fontSize: '14px' }}>
                     Select which student will join this class
-                </div>
-            </div>
-
-            <div style={{ marginTop: 24 }}>
-                <label htmlFor="classId" style={{ display: 'block', marginBottom: 8, color: 'rgba(0, 0, 0, 0.85)' }}>
-                    Class ID <span style={{ color: 'red' }}>*</span>
-                </label>
-                <Input
-                    id="classId"
-                    placeholder="Enter class ID (UUID)"
-                    value={classId}
-                    onChange={(e) => setClassId(e.target.value)}
-                    disabled={loading || !!success}
-                    onPressEnter={handleSubmit}
-                />
-                <div style={{ marginTop: 8, color: 'rgba(0, 0, 0, 0.45)', fontSize: '14px' }}>
-                    Enter the class ID provided by your class treasurer
                 </div>
             </div>
 
