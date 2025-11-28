@@ -1,62 +1,19 @@
 import { useState } from 'react';
+import { Modal, Button, Avatar, Typography, Divider, Tag, Input, Space } from 'antd';
 import {
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
-    IconButton,
-    Box,
-    Avatar,
-    Typography,
-    Divider,
-    Chip,
-    Button,
-    TextField,
-} from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
-import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
-import SchoolIcon from '@mui/icons-material/School';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
+    CalendarOutlined,
+    BookOutlined,
+    EditOutlined,
+    DeleteOutlined,
+    CloseOutlined,
+    ExclamationCircleOutlined
+} from '@ant-design/icons';
+import { DatePicker } from 'antd';
+import dayjs from 'dayjs';
 import { motion } from 'framer-motion';
 
-/**
- * Confirmation Dialog Component
- */
-function DeleteConfirmationDialog({ open, onClose, onConfirm, studentName }) {
-    return (
-        <Dialog
-            open={open}
-            onClose={onClose}
-            maxWidth="xs"
-            fullWidth
-            PaperProps={{
-                sx: { borderRadius: 2 },
-            }}
-        >
-            <DialogTitle>Are you sure?</DialogTitle>
-            <DialogContent>
-                <Typography variant="body2" color="text.secondary">
-                    This will permanently delete {studentName} from your students list.
-                    This action cannot be undone.
-                </Typography>
-            </DialogContent>
-            <DialogActions sx={{ px: 3, pb: 3 }}>
-                <Button onClick={onClose} sx={{ textTransform: 'none' }}>
-                    Cancel
-                </Button>
-                <Button
-                    onClick={onConfirm}
-                    variant="contained"
-                    color="error"
-                    sx={{ textTransform: 'none' }}
-                >
-                    Delete Student
-                </Button>
-            </DialogActions>
-        </Dialog>
-    );
-}
+const { Text, Title } = Typography;
+const { confirm } = Modal;
 
 /**
  * StudentDetailsDialog Component
@@ -77,7 +34,6 @@ export default function StudentDetailsDialog({
     onDelete
 }) {
     const [isEditing, setIsEditing] = useState(false);
-    const [showDeleteAlert, setShowDeleteAlert] = useState(false);
     const [editedData, setEditedData] = useState({
         firstName: '',
         lastName: '',
@@ -114,11 +70,20 @@ export default function StudentDetailsDialog({
     };
 
     const handleDelete = () => {
-        if (onDelete) {
-            onDelete(student.id);
-            setShowDeleteAlert(false);
-            onClose();
-        }
+        confirm({
+            title: 'Are you sure?',
+            icon: <ExclamationCircleOutlined />,
+            content: `This will permanently delete ${fullName} from your students list. This action cannot be undone.`,
+            okText: 'Delete Student',
+            okType: 'danger',
+            cancelText: 'Cancel',
+            onOk() {
+                if (onDelete) {
+                    onDelete(student.id);
+                    onClose();
+                }
+            },
+        });
     };
 
     const handleDialogClose = () => {
@@ -151,262 +116,169 @@ export default function StudentDetailsDialog({
     const age = calculateAge(student.birthDate);
     const initials = getInitials ? getInitials(fullName) : fullName.charAt(0).toUpperCase();
 
-    const today = new Date().toISOString().split('T')[0];
-    const minDate = new Date();
-    minDate.setFullYear(minDate.getFullYear() - 100);
-    const minDateStr = minDate.toISOString().split('T')[0];
-
     return (
-        <>
-            <Dialog
-                open={open}
-                onClose={handleDialogClose}
-                maxWidth="sm"
-                fullWidth
-                PaperProps={{
-                    sx: {
-                        borderRadius: 2,
-                    },
-                }}
-            >
-                <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    {isEditing ? 'Edit Student' : 'Student Details'}
-                    <IconButton
-                        onClick={handleDialogClose}
-                        size="small"
-                        sx={{ color: 'text.secondary' }}
-                    >
-                        <CloseIcon />
-                    </IconButton>
-                </DialogTitle>
-
-                <DialogContent>
-                    <Box sx={{ py: 2 }}>
-                        {/* Avatar and Name Section */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.3 }}
+        <Modal
+            open={open}
+            onCancel={handleDialogClose}
+            title={isEditing ? 'Edit Student' : 'Student Details'}
+            width={600}
+            closeIcon={<CloseOutlined />}
+            footer={
+                isEditing ? (
+                    <Space>
+                        <Button onClick={handleCancel}>
+                            Cancel
+                        </Button>
+                        <Button
+                            type="primary"
+                            onClick={handleSave}
+                            style={{ backgroundColor: 'black' }}
                         >
-                            <Box
-                                sx={{
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    alignItems: 'center',
-                                    textAlign: 'center',
-                                    mb: 4,
-                                }}
-                            >
-                                <Avatar
-                                    src={student.avatar || ''}
-                                    alt={fullName}
-                                    sx={{
-                                        width: 96,
-                                        height: 96,
-                                        mb: 2,
-                                        fontSize: '2rem',
-                                    }}
-                                >
-                                    {initials}
-                                </Avatar>
-                                {!isEditing && (
-                                    <>
-                                        <Typography variant="h5" fontWeight={600} gutterBottom>
-                                            {fullName}
-                                        </Typography>
-                                        <Typography variant="body2" color="text.secondary">
-                                            Age {age}
-                                        </Typography>
-                                    </>
-                                )}
-                            </Box>
-                        </motion.div>
+                            Save Changes
+                        </Button>
+                    </Space>
+                ) : (
+                    <Space style={{ width: '100%', justifyContent: 'space-between' }}>
+                        <Button
+                            danger
+                            type="primary"
+                            icon={<DeleteOutlined />}
+                            onClick={handleDelete}
+                        >
+                            Delete
+                        </Button>
+                        <Button
+                            icon={<EditOutlined />}
+                            onClick={handleEditClick}
+                        >
+                            Edit
+                        </Button>
+                    </Space>
+                )
+            }
+        >
+            <div style={{ padding: '16px 0' }}>
+                {/* Avatar and Name Section */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                >
+                    <div
+                        style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            textAlign: 'center',
+                            marginBottom: 32,
+                        }}
+                    >
+                        <Avatar
+                            src={student.avatar || ''}
+                            size={96}
+                            style={{ marginBottom: 16, fontSize: '2rem' }}
+                        >
+                            {initials}
+                        </Avatar>
+                        {!isEditing && (
+                            <>
+                                <Title level={4} style={{ marginBottom: 4 }}>
+                                    {fullName}
+                                </Title>
+                                <Text type="secondary">Age {age}</Text>
+                            </>
+                        )}
+                    </div>
+                </motion.div>
 
-                        <Divider sx={{ my: 3 }} />
+                <Divider />
 
-                        {/* Details Section */}
-                        <Box sx={{ mb: 3 }}>
-                            <Box sx={{ mb: 3 }}>
-                                <Typography
-                                    variant="caption"
-                                    color="text.secondary"
-                                    sx={{ display: 'block', mb: 1 }}
-                                >
-                                    First Name
-                                </Typography>
-                                {isEditing ? (
-                                    <TextField
-                                        fullWidth
-                                        size="small"
-                                        value={editedData.firstName}
-                                        onChange={(e) => setEditedData({
-                                            ...editedData,
-                                            firstName: e.target.value
-                                        })}
-                                        inputProps={{ maxLength: 50 }}
-                                    />
-                                ) : (
-                                    <Typography variant="body1">
-                                        {student.firstName}
-                                    </Typography>
-                                )}
-                            </Box>
+                {/* Details Section */}
+                <div style={{ marginBottom: 24 }}>
+                    <div style={{ marginBottom: 24 }}>
+                        <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
+                            First Name
+                        </Text>
+                        {isEditing ? (
+                            <Input
+                                value={editedData.firstName}
+                                onChange={(e) => setEditedData({
+                                    ...editedData,
+                                    firstName: e.target.value
+                                })}
+                                maxLength={50}
+                            />
+                        ) : (
+                            <Text>{student.firstName}</Text>
+                        )}
+                    </div>
 
-                            <Box sx={{ mb: 3 }}>
-                                <Typography
-                                    variant="caption"
-                                    color="text.secondary"
-                                    sx={{ display: 'block', mb: 1 }}
-                                >
-                                    Last Name
-                                </Typography>
-                                {isEditing ? (
-                                    <TextField
-                                        fullWidth
-                                        size="small"
-                                        value={editedData.lastName}
-                                        onChange={(e) => setEditedData({
-                                            ...editedData,
-                                            lastName: e.target.value
-                                        })}
-                                        inputProps={{ maxLength: 50 }}
-                                    />
-                                ) : (
-                                    <Typography variant="body1">
-                                        {student.lastName}
-                                    </Typography>
-                                )}
-                            </Box>
+                    <div style={{ marginBottom: 24 }}>
+                        <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
+                            Last Name
+                        </Text>
+                        {isEditing ? (
+                            <Input
+                                value={editedData.lastName}
+                                onChange={(e) => setEditedData({
+                                    ...editedData,
+                                    lastName: e.target.value
+                                })}
+                                maxLength={50}
+                            />
+                        ) : (
+                            <Text>{student.lastName}</Text>
+                        )}
+                    </div>
 
-                            <Box>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                                    <CalendarTodayIcon
-                                        sx={{ fontSize: 16, color: 'text.secondary' }}
-                                    />
-                                    <Typography variant="caption" color="text.secondary">
-                                        Birth Date
-                                    </Typography>
-                                </Box>
-                                {isEditing ? (
-                                    <TextField
-                                        fullWidth
-                                        size="small"
-                                        type="date"
-                                        value={editedData.birthDate}
-                                        onChange={(e) => setEditedData({
-                                            ...editedData,
-                                            birthDate: e.target.value
-                                        })}
-                                        InputLabelProps={{
-                                            shrink: true,
-                                        }}
-                                        inputProps={{
-                                            max: today,
-                                            min: minDateStr,
-                                        }}
-                                    />
-                                ) : (
-                                    <Typography variant="body1">
-                                        {formatDate(student.birthDate)}
-                                    </Typography>
-                                )}
-                            </Box>
-                        </Box>
+                    <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                            <CalendarOutlined style={{ color: 'rgba(0, 0, 0, 0.45)' }} />
+                            <Text type="secondary">Birth Date</Text>
+                        </div>
+                        {isEditing ? (
+                            <DatePicker
+                                value={editedData.birthDate ? dayjs(editedData.birthDate) : null}
+                                onChange={(date) => setEditedData({
+                                    ...editedData,
+                                    birthDate: date ? date.format('YYYY-MM-DD') : ''
+                                })}
+                                format="YYYY-MM-DD"
+                                maxDate={dayjs()}
+                                minDate={dayjs().subtract(100, 'years')}
+                                style={{ width: '100%' }}
+                                getPopupContainer={() => document.body}
+                            />
+                        ) : (
+                            <Text>{formatDate(student.birthDate)}</Text>
+                        )}
+                    </div>
+                </div>
 
-                        <Divider sx={{ my: 3 }} />
+                <Divider />
 
-                        {/* Classes Section */}
-                        <Box>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                                <SchoolIcon
-                                    sx={{ fontSize: 16, color: 'text.secondary' }}
-                                />
-                                <Typography variant="caption" color="text.secondary">
-                                    Enrolled Classes ({student.classes?.length || 0})
-                                </Typography>
-                            </Box>
+                {/* Classes Section */}
+                <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                        <BookOutlined style={{ color: 'rgba(0, 0, 0, 0.45)' }} />
+                        <Text type="secondary">
+                            Enrolled Classes ({student.classes?.length || 0})
+                        </Text>
+                    </div>
 
-                            {!student.classes || student.classes.length === 0 ? (
-                                <Typography variant="body2" color="text.secondary">
-                                    Not enrolled in any classes
-                                </Typography>
-                            ) : (
-                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                                    {student.classes.map((classItem) => (
-                                        <Chip
-                                            key={classItem.id}
-                                            label={classItem.name}
-                                            size="small"
-                                            sx={{
-                                                bgcolor: 'rgba(0, 0, 0, 0.08)',
-                                                fontWeight: 500,
-                                            }}
-                                        />
-                                    ))}
-                                </Box>
-                            )}
-                        </Box>
-                    </Box>
-                </DialogContent>
-
-                <DialogActions sx={{ px: 3, pb: 3, gap: 1 }}>
-                    {isEditing ? (
-                        <>
-                            <Button
-                                onClick={handleCancel}
-                                variant="outlined"
-                                sx={{ textTransform: 'none' }}
-                            >
-                                Cancel
-                            </Button>
-                            <Button
-                                onClick={handleSave}
-                                variant="contained"
-                                sx={{
-                                    textTransform: 'none',
-                                    bgcolor: 'black',
-                                    '&:hover': {
-                                        bgcolor: 'rgba(0, 0, 0, 0.85)',
-                                    },
-                                }}
-                            >
-                                Save Changes
-                            </Button>
-                        </>
+                    {!student.classes || student.classes.length === 0 ? (
+                        <Text type="secondary">Not enrolled in any classes</Text>
                     ) : (
-                        <>
-                            <Button
-                                onClick={() => setShowDeleteAlert(true)}
-                                variant="contained"
-                                color="error"
-                                startIcon={<DeleteIcon />}
-                                sx={{
-                                    textTransform: 'none',
-                                    mr: 'auto',
-                                }}
-                            >
-                                Delete
-                            </Button>
-                            <Button
-                                onClick={handleEditClick}
-                                variant="outlined"
-                                startIcon={<EditIcon />}
-                                sx={{ textTransform: 'none' }}
-                            >
-                                Edit
-                            </Button>
-                        </>
+                        <Space wrap>
+                            {student.classes.map((classItem) => (
+                                <Tag key={classItem.id}>
+                                    {classItem.name}
+                                </Tag>
+                            ))}
+                        </Space>
                     )}
-                </DialogActions>
-            </Dialog>
-
-            {/* Delete Confirmation Dialog */}
-            <DeleteConfirmationDialog
-                open={showDeleteAlert}
-                onClose={() => setShowDeleteAlert(false)}
-                onConfirm={handleDelete}
-                studentName={fullName}
-            />
-        </>
+                </div>
+            </div>
+        </Modal>
     );
 }

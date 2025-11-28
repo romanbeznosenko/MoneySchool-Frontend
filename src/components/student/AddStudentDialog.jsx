@@ -1,18 +1,9 @@
 import { useState } from 'react';
-import {
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
-    TextField,
-    Button,
-    Box,
-    Alert,
-    CircularProgress,
-    IconButton,
-} from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
+import { Modal, Input, Button, Alert } from 'antd';
+import { CloseOutlined, LoadingOutlined } from '@ant-design/icons';
 import { motion, AnimatePresence } from 'framer-motion';
+import { DatePicker } from 'antd';
+import dayjs from 'dayjs';
 import { studentService } from '../../services/studentService';
 
 export default function AddStudentDialog({ open, onClose, onStudentAdded }) {
@@ -34,8 +25,7 @@ export default function AddStudentDialog({ open, onClose, onStudentAdded }) {
         }
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const handleSubmit = async () => {
         setError(null);
         setSuccess(null);
 
@@ -63,134 +53,97 @@ export default function AddStudentDialog({ open, onClose, onStudentAdded }) {
         }
     };
 
-    const today = new Date().toISOString().split('T')[0];
-    const minDate = new Date();
-    minDate.setFullYear(minDate.getFullYear() - 100);
-    const minDateStr = minDate.toISOString().split('T')[0];
+    const isFormValid = firstName.trim() && lastName.trim() && birthDate;
 
     return (
-        <Dialog
+        <Modal
             open={open}
-            onClose={handleClose}
-            maxWidth="sm"
-            fullWidth
-            PaperProps={{
-                sx: {
-                    borderRadius: 2,
-                },
-            }}
-        >
-            <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                Add New Student
-                <IconButton
-                    onClick={handleClose}
-                    disabled={loading}
-                    size="small"
-                    sx={{ color: 'text.secondary' }}
+            onCancel={handleClose}
+            title="Add New Student"
+            width={600}
+            closeIcon={<CloseOutlined />}
+            footer={[
+                <Button key="cancel" onClick={handleClose} disabled={loading || !!success}>
+                    Cancel
+                </Button>,
+                <Button
+                    key="submit"
+                    type="primary"
+                    onClick={handleSubmit}
+                    disabled={loading || !!success || !isFormValid}
+                    style={{ backgroundColor: 'black' }}
+                    icon={loading ? <LoadingOutlined /> : null}
                 >
-                    <CloseIcon />
-                </IconButton>
-            </DialogTitle>
+                    {loading ? 'Adding...' : 'Add Student'}
+                </Button>,
+            ]}
+        >
+            <AnimatePresence mode="wait">
+                {(error || success) && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                    >
+                        <Alert
+                            description={error || success}
+                            type={error ? 'error' : 'success'}
+                            closable
+                            style={{ marginBottom: 16 }}
+                        />
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
-            <Box component="form" onSubmit={handleSubmit}>
-                <DialogContent>
-                    <AnimatePresence mode="wait">
-                        {(error || success) && (
-                            <motion.div
-                                initial={{ opacity: 0, y: -10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -10 }}
-                            >
-                                <Alert
-                                    severity={error ? 'error' : 'success'}
-                                    sx={{ mb: 2 }}
-                                    onClose={() => {
-                                        setError(null);
-                                        setSuccess(null);
-                                    }}
-                                >
-                                    {error || success}
-                                </Alert>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-
-                    <TextField
-                        autoFocus
-                        required
-                        fullWidth
-                        margin="normal"
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 16 }}>
+                <div>
+                    <label htmlFor="firstName" style={{ display: 'block', marginBottom: 8, color: 'rgba(0, 0, 0, 0.85)' }}>
+                        First Name <span style={{ color: 'red' }}>*</span>
+                    </label>
+                    <Input
                         id="firstName"
-                        label="First Name"
-                        name="firstName"
+                        placeholder="Enter first name"
                         value={firstName}
                         onChange={(e) => setFirstName(e.target.value)}
                         disabled={loading || !!success}
-                        inputProps={{ maxLength: 50 }}
+                        maxLength={50}
+                        autoFocus
                     />
+                </div>
 
-                    <TextField
-                        required
-                        fullWidth
-                        margin="normal"
+                <div>
+                    <label htmlFor="lastName" style={{ display: 'block', marginBottom: 8, color: 'rgba(0, 0, 0, 0.85)' }}>
+                        Last Name <span style={{ color: 'red' }}>*</span>
+                    </label>
+                    <Input
                         id="lastName"
-                        label="Last Name"
-                        name="lastName"
+                        placeholder="Enter last name"
                         value={lastName}
                         onChange={(e) => setLastName(e.target.value)}
                         disabled={loading || !!success}
-                        inputProps={{ maxLength: 50 }}
+                        maxLength={50}
                     />
+                </div>
 
-                    <TextField
-                        required
-                        fullWidth
-                        margin="normal"
+                <div>
+                    <label htmlFor="birthDate" style={{ display: 'block', marginBottom: 8, color: 'rgba(0, 0, 0, 0.85)' }}>
+                        Birth Date <span style={{ color: 'red' }}>*</span>
+                    </label>
+                    <DatePicker
                         id="birthDate"
-                        label="Birth Date"
-                        name="birthDate"
-                        type="date"
-                        value={birthDate}
-                        onChange={(e) => setBirthDate(e.target.value)}
+                        placeholder="Select birth date"
+                        value={birthDate ? dayjs(birthDate) : null}
+                        onChange={(date) => setBirthDate(date ? date.format('YYYY-MM-DD') : '')}
                         disabled={loading || !!success}
-                        InputLabelProps={{
-                            shrink: true,
-                        }}
-                        inputProps={{
-                            max: today,
-                            min: minDateStr,
-                        }}
+                        format="YYYY-MM-DD"
+                        maxDate={dayjs()}
+                        minDate={dayjs().subtract(100, 'years')}
+                        style={{ width: '100%' }}
+                        size="large"
+                        getPopupContainer={() => document.body}
                     />
-                </DialogContent>
-
-                <DialogActions sx={{ px: 3, pb: 3 }}>
-                    <Button
-                        onClick={handleClose}
-                        disabled={loading || !!success}
-                        sx={{ textTransform: 'none' }}
-                    >
-                        Cancel
-                    </Button>
-                    <Button
-                        type="submit"
-                        variant="contained"
-                        disabled={loading || !!success}
-                        sx={{
-                            textTransform: 'none',
-                            bgcolor: 'black',
-                            '&:hover': {
-                                bgcolor: 'rgba(0, 0, 0, 0.85)',
-                            },
-                        }}
-                    >
-                        {loading ? (
-                            <CircularProgress size={24} color="inherit" />
-                        ) : (
-                            'Add Student'
-                        )}
-                    </Button>
-                </DialogActions>
-            </Box>
-        </Dialog>
+                </div>
+            </div>
+        </Modal>
     );
 }

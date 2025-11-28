@@ -1,58 +1,17 @@
 import { useState } from 'react';
+import { Modal, Button, Avatar, Typography, Divider, Input, Space } from 'antd';
 import {
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
-    IconButton,
-    Box,
-    Avatar,
-    Typography,
-    Divider,
-    Button,
-    TextField,
-} from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
-import GroupIcon from '@mui/icons-material/Group';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import PersonIcon from '@mui/icons-material/Person';
+    TeamOutlined,
+    UserOutlined,
+    EditOutlined,
+    DeleteOutlined,
+    CloseOutlined,
+    ExclamationCircleOutlined
+} from '@ant-design/icons';
 import { motion } from 'framer-motion';
 
-function DeleteConfirmationDialog({ open, onClose, onConfirm, className }) {
-    return (
-        <Dialog
-            open={open}
-            onClose={onClose}
-            maxWidth="xs"
-            fullWidth
-            PaperProps={{
-                sx: { borderRadius: 2 },
-            }}
-        >
-            <DialogTitle>Are you sure?</DialogTitle>
-            <DialogContent>
-                <Typography variant="body2" color="text.secondary">
-                    This will permanently delete the class "{className}".
-                    This action cannot be undone.
-                </Typography>
-            </DialogContent>
-            <DialogActions sx={{ px: 3, pb: 3 }}>
-                <Button onClick={onClose} sx={{ textTransform: 'none' }}>
-                    Cancel
-                </Button>
-                <Button
-                    onClick={onConfirm}
-                    variant="contained"
-                    color="error"
-                    sx={{ textTransform: 'none' }}
-                >
-                    Delete Class
-                </Button>
-            </DialogActions>
-        </Dialog>
-    );
-}
+const { Text, Title } = Typography;
+const { confirm } = Modal;
 
 export default function ClassDetailsDialog({
     classItem,
@@ -62,7 +21,6 @@ export default function ClassDetailsDialog({
     onDelete
 }) {
     const [isEditing, setIsEditing] = useState(false);
-    const [showDeleteAlert, setShowDeleteAlert] = useState(false);
     const [editedData, setEditedData] = useState({
         name: '',
     });
@@ -100,11 +58,20 @@ export default function ClassDetailsDialog({
     };
 
     const handleDelete = () => {
-        if (onDelete) {
-            onDelete(classItem.id);
-            setShowDeleteAlert(false);
-            onClose();
-        }
+        confirm({
+            title: 'Are you sure?',
+            icon: <ExclamationCircleOutlined />,
+            content: `This will permanently delete the class "${classItem.name}". This action cannot be undone.`,
+            okText: 'Delete Class',
+            okType: 'danger',
+            cancelText: 'Cancel',
+            onOk() {
+                if (onDelete) {
+                    onDelete(classItem.id);
+                    onClose();
+                }
+            },
+        });
     };
 
     const handleDialogClose = () => {
@@ -113,214 +80,159 @@ export default function ClassDetailsDialog({
     };
 
     return (
-        <>
-            <Dialog
-                open={open}
-                onClose={handleDialogClose}
-                maxWidth="sm"
-                fullWidth
-                PaperProps={{
-                    sx: {
-                        borderRadius: 2,
-                    },
-                }}
-            >
-                <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    {isEditing ? 'Edit Class' : 'Class Details'}
-                    <IconButton
-                        onClick={handleDialogClose}
-                        size="small"
-                        sx={{ color: 'text.secondary' }}
-                    >
-                        <CloseIcon />
-                    </IconButton>
-                </DialogTitle>
-
-                <DialogContent>
-                    <Box sx={{ py: 2 }}>
-                        {/* Class Name Section */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.3 }}
+        <Modal
+            open={open}
+            onCancel={handleDialogClose}
+            title={isEditing ? 'Edit Class' : 'Class Details'}
+            width={600}
+            closeIcon={<CloseOutlined />}
+            footer={
+                isEditing ? (
+                    <Space>
+                        <Button onClick={handleCancel}>
+                            Cancel
+                        </Button>
+                        <Button
+                            type="primary"
+                            onClick={handleSave}
+                            style={{ backgroundColor: 'black' }}
                         >
-                            {!isEditing && (
-                                <Box
-                                    sx={{
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        alignItems: 'center',
-                                        textAlign: 'center',
-                                        mb: 4,
-                                    }}
-                                >
-                                    <Box
-                                        sx={{
-                                            width: 96,
-                                            height: 96,
-                                            borderRadius: '50%',
-                                            bgcolor: 'primary.main',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            mb: 2,
-                                        }}
-                                    >
-                                        <GroupIcon sx={{ fontSize: 48, color: 'white' }} />
-                                    </Box>
-                                    <Typography variant="h5" fontWeight={600} gutterBottom>
-                                        {classItem.name}
-                                    </Typography>
-                                    <Typography variant="body2" color="text.secondary">
-                                        {classItem.memberCount} members
-                                    </Typography>
-                                </Box>
-                            )}
-                        </motion.div>
-
-                        <Divider sx={{ my: 3 }} />
-
-                        {/* Class Details Section */}
-                        <Box sx={{ mb: 3 }}>
-                            <Box sx={{ mb: 3 }}>
-                                <Typography
-                                    variant="caption"
-                                    color="text.secondary"
-                                    sx={{ display: 'block', mb: 1 }}
-                                >
-                                    Class Name
-                                </Typography>
-                                {isEditing ? (
-                                    <TextField
-                                        fullWidth
-                                        size="small"
-                                        value={editedData.name}
-                                        onChange={(e) => setEditedData({
-                                            name: e.target.value
-                                        })}
-                                        inputProps={{ maxLength: 100 }}
-                                        autoFocus
-                                    />
-                                ) : (
-                                    <Typography variant="body1">
-                                        {classItem.name}
-                                    </Typography>
-                                )}
-                            </Box>
-                        </Box>
-
-                        {!isEditing && (
-                            <>
-                                <Divider sx={{ my: 3 }} />
-
-                                {/* Treasurer Section */}
-                                {classItem.treasurer && (
-                                    <Box sx={{ mb: 3 }}>
-                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                                            <PersonIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-                                            <Typography variant="caption" color="text.secondary">
-                                                Treasurer
-                                            </Typography>
-                                        </Box>
-                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                            <Avatar
-                                                src={classItem.treasurer.avatar || ''}
-                                                sx={{ width: 40, height: 40 }}
-                                            >
-                                                {classItem.treasurer.name?.[0]?.toUpperCase() ||
-                                                    classItem.treasurer.email?.[0]?.toUpperCase()}
-                                            </Avatar>
-                                            <Box>
-                                                <Typography variant="body2" fontWeight={500}>
-                                                    {classItem.treasurer.fullName}
-                                                </Typography>
-                                                <Typography variant="caption" color="text.secondary">
-                                                    {classItem.treasurer.email}
-                                                </Typography>
-                                            </Box>
-                                        </Box>
-                                    </Box>
-                                )}
-
-                                <Divider sx={{ my: 3 }} />
-
-                                {/* Members Count */}
-                                <Box>
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                                        <GroupIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-                                        <Typography variant="caption" color="text.secondary">
-                                            Members
-                                        </Typography>
-                                    </Box>
-                                    <Typography variant="body1">
-                                        {classItem.memberCount} {classItem.memberCount === 1 ? 'member' : 'members'}
-                                    </Typography>
-                                </Box>
-                            </>
-                        )}
-                    </Box>
-                </DialogContent>
-
-                <DialogActions sx={{ px: 3, pb: 3, gap: 1 }}>
-                    {isEditing ? (
-                        <>
+                            Save Changes
+                        </Button>
+                    </Space>
+                ) : (
+                    <Space style={{ width: '100%', justifyContent: 'space-between' }}>
+                        {onDelete && (
                             <Button
-                                onClick={handleCancel}
-                                variant="outlined"
-                                sx={{ textTransform: 'none' }}
+                                danger
+                                type="primary"
+                                icon={<DeleteOutlined />}
+                                onClick={handleDelete}
                             >
-                                Cancel
+                                Delete
                             </Button>
-                            <Button
-                                onClick={handleSave}
-                                variant="contained"
-                                sx={{
-                                    textTransform: 'none',
-                                    bgcolor: 'black',
-                                    '&:hover': {
-                                        bgcolor: 'rgba(0, 0, 0, 0.85)',
-                                    },
+                        )}
+                        <Button
+                            icon={<EditOutlined />}
+                            onClick={handleEditClick}
+                            style={{ marginLeft: onDelete ? 0 : 'auto' }}
+                        >
+                            Edit
+                        </Button>
+                    </Space>
+                )
+            }
+        >
+            <div style={{ padding: '16px 0' }}>
+                {/* Class Name Section */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                >
+                    {!isEditing && (
+                        <div
+                            style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                textAlign: 'center',
+                                marginBottom: 32,
+                            }}
+                        >
+                            <div
+                                style={{
+                                    width: 96,
+                                    height: 96,
+                                    borderRadius: '50%',
+                                    backgroundColor: '#1890ff',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    marginBottom: 16,
                                 }}
                             >
-                                Save Changes
-                            </Button>
-                        </>
-                    ) : (
-                        <>
-                            {onDelete && (
-                                <Button
-                                    onClick={() => setShowDeleteAlert(true)}
-                                    variant="contained"
-                                    color="error"
-                                    startIcon={<DeleteIcon />}
-                                    sx={{
-                                        textTransform: 'none',
-                                        mr: 'auto',
-                                    }}
-                                >
-                                    Delete
-                                </Button>
-                            )}
-                            <Button
-                                onClick={handleEditClick}
-                                variant="outlined"
-                                startIcon={<EditIcon />}
-                                sx={{ textTransform: 'none', ml: onDelete ? 0 : 'auto' }}
-                            >
-                                Edit
-                            </Button>
-                        </>
+                                <TeamOutlined style={{ fontSize: 48, color: 'white' }} />
+                            </div>
+                            <Title level={4} style={{ marginBottom: 4 }}>
+                                {classItem.name}
+                            </Title>
+                            <Text type="secondary">
+                                {classItem.memberCount} members
+                            </Text>
+                        </div>
                     )}
-                </DialogActions>
-            </Dialog>
+                </motion.div>
 
-            {/* Delete Confirmation Dialog */}
-            <DeleteConfirmationDialog
-                open={showDeleteAlert}
-                onClose={() => setShowDeleteAlert(false)}
-                onConfirm={handleDelete}
-                className={classItem.name}
-            />
-        </>
+                <Divider />
+
+                {/* Class Details Section */}
+                <div style={{ marginBottom: 24 }}>
+                    <div style={{ marginBottom: 24 }}>
+                        <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
+                            Class Name
+                        </Text>
+                        {isEditing ? (
+                            <Input
+                                value={editedData.name}
+                                onChange={(e) => setEditedData({
+                                    name: e.target.value
+                                })}
+                                maxLength={100}
+                                autoFocus
+                            />
+                        ) : (
+                            <Text>{classItem.name}</Text>
+                        )}
+                    </div>
+                </div>
+
+                {!isEditing && (
+                    <>
+                        <Divider />
+
+                        {/* Treasurer Section */}
+                        {classItem.treasurer && (
+                            <div style={{ marginBottom: 24 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                                    <UserOutlined style={{ color: 'rgba(0, 0, 0, 0.45)' }} />
+                                    <Text type="secondary">Treasurer</Text>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                                    <Avatar
+                                        src={classItem.treasurer.avatar || ''}
+                                        size={40}
+                                    >
+                                        {classItem.treasurer.name?.[0]?.toUpperCase() ||
+                                            classItem.treasurer.email?.[0]?.toUpperCase()}
+                                    </Avatar>
+                                    <div>
+                                        <Text strong style={{ display: 'block' }}>
+                                            {classItem.treasurer.fullName}
+                                        </Text>
+                                        <Text type="secondary" style={{ fontSize: '12px' }}>
+                                            {classItem.treasurer.email}
+                                        </Text>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        <Divider />
+
+                        {/* Members Count */}
+                        <div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                                <TeamOutlined style={{ color: 'rgba(0, 0, 0, 0.45)' }} />
+                                <Text type="secondary">Members</Text>
+                            </div>
+                            <Text>
+                                {classItem.memberCount} {classItem.memberCount === 1 ? 'member' : 'members'}
+                            </Text>
+                        </div>
+                    </>
+                )}
+            </div>
+        </Modal>
     );
 }

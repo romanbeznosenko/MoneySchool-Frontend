@@ -1,17 +1,6 @@
 import { useState } from 'react';
-import {
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
-    TextField,
-    Button,
-    Box,
-    Alert,
-    CircularProgress,
-    IconButton,
-} from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
+import { Modal, Input, Button, Alert } from 'antd';
+import { CloseOutlined, LoadingOutlined } from '@ant-design/icons';
 import { motion, AnimatePresence } from 'framer-motion';
 import { classService } from "../../services/classService";
 
@@ -31,8 +20,7 @@ export default function AddClassDialog({ open, onClose, onClassAdded }) {
         }
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const handleSubmit = async () => {
         setError(null);
         setSuccess(null);
 
@@ -59,97 +47,67 @@ export default function AddClassDialog({ open, onClose, onClassAdded }) {
     };
 
     return (
-        <Dialog
+        <Modal
             open={open}
-            onClose={handleClose}
-            maxWidth="sm"
-            fullWidth
-            PaperProps={{
-                sx: {
-                    borderRadius: 2,
-                },
-            }}
-        >
-            <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                Create New Class
-                <IconButton
-                    onClick={handleClose}
-                    disabled={loading}
-                    size="small"
-                    sx={{ color: 'text.secondary' }}
+            onCancel={handleClose}
+            title="Create New Class"
+            width={600}
+            closeIcon={<CloseOutlined />}
+            footer={[
+                <Button key="cancel" onClick={handleClose} disabled={loading || !!success}>
+                    Cancel
+                </Button>,
+                <Button
+                    key="submit"
+                    type="primary"
+                    onClick={handleSubmit}
+                    disabled={loading || !!success || !name.trim()}
+                    style={{ backgroundColor: 'black' }}
+                    icon={loading ? <LoadingOutlined /> : null}
                 >
-                    <CloseIcon />
-                </IconButton>
-            </DialogTitle>
-
-            <Box component="form" onSubmit={handleSubmit}>
-                <DialogContent>
-                    <AnimatePresence mode="wait">
-                        {(error || success) && (
-                            <motion.div
-                                initial={{ opacity: 0, y: -10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -10 }}
-                            >
-                                <Alert
-                                    severity={error ? 'error' : 'success'}
-                                    sx={{ mb: 2 }}
-                                    onClose={() => {
-                                        setError(null);
-                                        setSuccess(null);
-                                    }}
-                                >
-                                    {error || success}
-                                </Alert>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-
-                    <TextField
-                        autoFocus
-                        required
-                        fullWidth
-                        margin="normal"
-                        id="name"
-                        label="Class Name"
-                        name="name"
-                        placeholder="e.g., Mathematics 101"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        disabled={loading || !!success}
-                        inputProps={{ maxLength: 100 }}
-                        helperText="Enter a descriptive name for your class"
-                    />
-                </DialogContent>
-
-                <DialogActions sx={{ px: 3, pb: 3 }}>
-                    <Button
-                        onClick={handleClose}
-                        disabled={loading || !!success}
-                        sx={{ textTransform: 'none' }}
+                    {loading ? 'Creating...' : 'Create Class'}
+                </Button>,
+            ]}
+        >
+            <AnimatePresence mode="wait">
+                {(error || success) && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
                     >
-                        Cancel
-                    </Button>
-                    <Button
-                        type="submit"
-                        variant="contained"
-                        disabled={loading || !!success || !name.trim()}
-                        sx={{
-                            textTransform: 'none',
-                            bgcolor: 'black',
-                            '&:hover': {
-                                bgcolor: 'rgba(0, 0, 0, 0.85)',
-                            },
-                        }}
-                    >
-                        {loading ? (
-                            <CircularProgress size={24} color="inherit" />
-                        ) : (
-                            'Create Class'
-                        )}
-                    </Button>
-                </DialogActions>
-            </Box>
-        </Dialog>
+                        <Alert
+                            message={error || success}
+                            type={error ? 'error' : 'success'}
+                            closable
+                            onClose={() => {
+                                setError(null);
+                                setSuccess(null);
+                            }}
+                            style={{ marginBottom: 16 }}
+                        />
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            <div style={{ marginTop: 16 }}>
+                <label htmlFor="name" style={{ display: 'block', marginBottom: 8, color: 'rgba(0, 0, 0, 0.85)' }}>
+                    Class Name <span style={{ color: 'red' }}>*</span>
+                </label>
+                <Input
+                    id="name"
+                    placeholder="e.g., Mathematics 101"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    disabled={loading || !!success}
+                    maxLength={100}
+                    autoFocus
+                    onPressEnter={handleSubmit}
+                />
+                <div style={{ marginTop: 8, color: 'rgba(0, 0, 0, 0.45)', fontSize: '14px' }}>
+                    Enter a descriptive name for your class
+                </div>
+            </div>
+        </Modal>
     );
 }
