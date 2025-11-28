@@ -26,5 +26,10 @@ export const classApi = {
     deleteClass: async (classId) => {
         const response = await apiClient.delete(`/api/class/${classId}`);
         return response.data;
+    },
+
+    getAccessCode: async (classId) => {
+        const response = await apiClient.get(`/api/class-access-token/${classId}`);
+        return response.data;
     }
 }

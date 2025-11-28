@@ -1,14 +1,16 @@
 import { useState } from 'react';
-import { Modal, Button, Avatar, Typography, Divider, Input, Space } from 'antd';
+import { Modal, Button, Avatar, Typography, Divider, Input, Space, message } from 'antd';
 import {
     TeamOutlined,
     UserOutlined,
     EditOutlined,
     DeleteOutlined,
     CloseOutlined,
-    ExclamationCircleOutlined
+    ExclamationCircleOutlined,
+    KeyOutlined
 } from '@ant-design/icons';
 import { motion } from 'framer-motion';
+import { classApi } from '../../services/api/classApi';
 
 const { Text, Title } = Typography;
 const { confirm } = Modal;
@@ -21,6 +23,8 @@ export default function ClassDetailsDialog({
     onDelete
 }) {
     const [isEditing, setIsEditing] = useState(false);
+    const [accessCode, setAccessCode] = useState(null);
+    const [loadingAccessCode, setLoadingAccessCode] = useState(false);
     const [editedData, setEditedData] = useState({
         name: '',
     });
@@ -77,6 +81,23 @@ export default function ClassDetailsDialog({
     const handleDialogClose = () => {
         onClose();
         setIsEditing(false);
+        setAccessCode(null);
+    };
+
+    const handleGetAccessCode = async () => {
+        try {
+            setLoadingAccessCode(true);
+            console.log('Fetching access code for classId:', classItem.id);
+            const response = await classApi.getAccessCode(classItem.id);
+            console.log('Access code response:', response);
+            console.log('Access token:', response.data.token);
+            setAccessCode(response.data.token);
+        } catch (error) {
+            console.error('Failed to get access code:', error);
+            message.error('Failed to get access code');
+        } finally {
+            setLoadingAccessCode(false);
+        }
     };
 
     return (
@@ -111,6 +132,27 @@ export default function ClassDetailsDialog({
                             >
                                 Delete
                             </Button>
+                        )}
+                        {!accessCode ? (
+                            <Button
+                                icon={<KeyOutlined />}
+                                style={{ marginLeft: onDelete ? 0 : 'auto' }}
+                                onClick={handleGetAccessCode}
+                                loading={loadingAccessCode}
+                            >
+                                Get access code
+                            </Button>
+                        ) : (
+                            <Text
+                                strong
+                                style={{
+                                    marginLeft: onDelete ? 0 : 'auto',
+                                    fontSize: '16px',
+                                    letterSpacing: '0.1em'
+                                }}
+                            >
+                                Code: {accessCode}
+                            </Text>
                         )}
                         <Button
                             icon={<EditOutlined />}
