@@ -14,7 +14,7 @@ export function useRegister() {
 
             const responseDto = await authService.register(email, password, confirmPassword);
 
-            setSuccess('Account created successfully! Redirecting to login...');
+            setSuccess('Account created successfully! Check your email for the activation code.');
             return responseDto;
         } catch (err) {
             console.error('Registration error:', err);

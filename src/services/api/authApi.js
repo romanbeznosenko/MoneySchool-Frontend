@@ -25,4 +25,14 @@ export const authApi = {
         const response = await apiClient.get('/api/user');
         return response.data;
     },
+
+    activateAccount: async (activationRequest) => {
+        const response = await apiClient.post('/auth/activate', activationRequest);
+        return response.data;
+    },
+
+    resendActivationCode: async (resendRequest) => {
+        const response = await apiClient.post('/auth/activate/resend', resendRequest);
+        return response.data;
+    },
 };

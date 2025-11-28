@@ -1,6 +1,8 @@
 import { authApi } from '../services/api/authApi';
 import { LoginRequestDto } from '../dto/auth/LoginRequest';
 import { RegisterRequestDto } from '../dto/auth/RegisterRequest';
+import { AccountActivationRequestDto } from '../dto/auth/AccountActivationRequest';
+import { VerificationCodeResendRequestDto } from '../dto/auth/VerificationCodeResendRequest';
 import { ErrorResponseDto } from '../dto/ErrorResponse';
 import { AuthResponseDto } from '../dto/auth/AuthResponse';
 
@@ -102,6 +104,54 @@ export const authService = {
             console.error('Get user service error:', error);
             throw new ErrorResponseDto(
                 error.message || 'Failed to retrieve user data.',
+                error.httpStatus
+            );
+        }
+    },
+
+    activateAccount: async (email, code) => {
+        try {
+            if (!email || !email.trim()) {
+                throw new Error('Email is required');
+            }
+            if (!code || !code.trim()) {
+                throw new Error('Activation code is required');
+            }
+            if (code.length !== 4) {
+                throw new Error('Activation code must be 4 digits');
+            }
+
+            const requestDto = new AccountActivationRequestDto(email, code);
+
+            const apiResponse = await authApi.activateAccount(requestDto);
+
+            console.log('Account activated successfully');
+            return apiResponse;
+        } catch (error) {
+            console.error('Account activation service error:', error);
+            throw new ErrorResponseDto(
+                error.message || 'Account activation failed. Please try again.',
+                error.httpStatus
+            );
+        }
+    },
+
+    resendActivationCode: async (email) => {
+        try {
+            if (!email || !email.trim()) {
+                throw new Error('Email is required');
+            }
+
+            const requestDto = new VerificationCodeResendRequestDto(email);
+
+            const apiResponse = await authApi.resendActivationCode(requestDto);
+
+            console.log('Activation code resent successfully');
+            return apiResponse;
+        } catch (error) {
+            console.error('Resend activation code service error:', error);
+            throw new ErrorResponseDto(
+                error.message || 'Failed to resend activation code. Please try again.',
                 error.httpStatus
             );
         }

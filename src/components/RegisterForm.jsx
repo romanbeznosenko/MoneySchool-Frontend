@@ -45,11 +45,11 @@ export default function RegisterForm({ onSuccess }) {
     useEffect(() => {
         if (success) {
             const timer = setTimeout(() => {
-                onSuccess?.();
+                onSuccess?.(email);
             }, 2000);
             return () => clearTimeout(timer);
         }
-    }, [success, onSuccess]);
+    }, [success, onSuccess, email]);
 
     const validateEmail = (email) => {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

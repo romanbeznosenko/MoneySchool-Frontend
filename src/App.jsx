@@ -4,6 +4,7 @@ import { Box, CircularProgress } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import LoginForm from './components/LoginForm';
 import RegisterForm from './components/RegisterForm';
+import ConfirmRegistration from './components/ConfirmRegistration';
 import Dashboard from './components/Dashboard';
 import { authService } from './services/authService';
 
@@ -62,8 +63,8 @@ function AppContent() {
     navigate('/dashboard');
   };
 
-  const handleRegisterSuccess = () => {
-    navigate('/login');
+  const handleRegisterSuccess = (email) => {
+    navigate('/register/confirm', { state: { email } });
   };
 
   const handleLogout = async () => {
@@ -148,6 +149,30 @@ function AppContent() {
                 <RegisterForm
                   onSuccess={handleRegisterSuccess}
                 />
+              </AnimatedPage>
+            </Box>
+          )
+        }
+      />
+
+      <Route
+        path="/register/confirm"
+        element={
+          isAuthenticated ? (
+            <Navigate to="/dashboard" replace />
+          ) : (
+            <Box
+              sx={{
+                minHeight: '100vh',
+                background: '#ffffff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: 2,
+              }}
+            >
+              <AnimatedPage>
+                <ConfirmRegistration />
               </AnimatedPage>
             </Box>
           )
