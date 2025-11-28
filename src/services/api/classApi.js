@@ -60,5 +60,19 @@ export const classApi = {
     getAccessCode: async (classId) => {
         const response = await apiClient.get(`/api/class-access-token/${classId}`);
         return response.data;
+    },
+
+    /**
+     * Join a class with an access code
+     * @param {string} classId - Class ID (UUID)
+     * @param {string} studentId - Student ID (UUID)
+     * @param {string} accessCode - 4-digit access code
+     * @returns {Promise<import("./types").ClassResponse>}
+     */
+    joinClass: async (classId, studentId, accessCode) => {
+        const response = await apiClient.post("/api/class-member/add", null, {
+            params: { classId, studentId, accessCode }
+        });
+        return response.data;
     }
 }

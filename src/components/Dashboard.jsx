@@ -22,6 +22,7 @@ import AddStudentDialog from './student/AddStudentDialog';
 import StudentDetailsDialog from './student/StudentDetailsDialog';
 import ClassCard from './class/ClassCard';
 import AddClassDialog from './class/AddClassDialog';
+import JoinClassDialog from './class/JoinClassDialog';
 import ClassDetailsDialog from './class/ClassDetailsDialog';
 import DashboardSider from './SideMenu';
 import { useUser } from './../hooks/useUser';
@@ -48,6 +49,7 @@ export default function Dashboard({ onLogout }) {
     const [classesTab, setClassesTab] = useState('all');
     const [addStudentDialogOpen, setAddStudentDialogOpen] = useState(false);
     const [addClassDialogOpen, setAddClassDialogOpen] = useState(false);
+    const [joinClassDialogOpen, setJoinClassDialogOpen] = useState(false);
     const [studentDetailsDialogOpen, setStudentDetailsDialogOpen] = useState(false);
     const [classDetailsDialogOpen, setClassDetailsDialogOpen] = useState(false);
 
@@ -340,6 +342,7 @@ export default function Dashboard({ onLogout }) {
                                                 </Button>
                                                 <Button
                                                     icon={<UserAddOutlined />}
+                                                    onClick={() => setJoinClassDialogOpen(true)}
                                                 >
                                                     Join Class
                                                 </Button>
@@ -448,6 +451,13 @@ export default function Dashboard({ onLogout }) {
                 open={addClassDialogOpen}
                 onClose={() => setAddClassDialogOpen(false)}
                 onClassAdded={handleClassAdded}
+            />
+
+            <JoinClassDialog
+                open={joinClassDialogOpen}
+                onClose={() => setJoinClassDialogOpen(false)}
+                onClassJoined={handleClassAdded}
+                students={students}
             />
 
             <ClassDetailsDialog

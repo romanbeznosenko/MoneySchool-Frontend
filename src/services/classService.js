@@ -83,4 +83,36 @@ export const classService = {
             );
         }
     },
+
+    joinClass: async (classId, studentId, accessCode) => {
+        try {
+            if (!classId || !classId.trim()) {
+                throw new Error("Class ID is required");
+            }
+
+            if (!studentId) {
+                throw new Error("Student ID is required");
+            }
+
+            if (!accessCode || !accessCode.trim()) {
+                throw new Error("Access code is required");
+            }
+
+            if (!/^\d{4}$/.test(accessCode)) {
+                throw new Error("Access code must be a 4-digit number");
+            }
+
+            console.log("Joining class with classId:", classId, "and student ID:", studentId);
+
+            const apiResponse = await classApi.joinClass(classId, studentId, accessCode);
+            console.log("Joined class successfully:", apiResponse.message);
+            return apiResponse;
+        } catch (error) {
+            console.error("Join class service error:", error);
+            throw new ErrorResponseDto(
+                error.message || "Failed to join class",
+                error.httpStatus
+            );
+        }
+    },
 };
