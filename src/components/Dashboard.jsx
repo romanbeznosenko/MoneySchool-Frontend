@@ -6,7 +6,6 @@ import {
     Button,
     Row,
     Col,
-    Avatar,
     Tabs,
     Tag,
     Spin,
@@ -24,11 +23,12 @@ import StudentDetailsDialog from './student/StudentDetailsDialog';
 import ClassCard from './class/ClassCard';
 import AddClassDialog from './class/AddClassDialog';
 import ClassDetailsDialog from './class/ClassDetailsDialog';
+import DashboardSider from './SideMenu';
 import { useUser } from './../hooks/useUser';
 import { useStudents } from './../hooks/useStudents';
 import { useClasses } from './../hooks/useClasses';
 
-const { Header, Content, Footer, Sider } = Layout;
+const { Header, Content, Footer } = Layout;
 const { Title, Text } = Typography;
 
 const cardVariants = {
@@ -44,6 +44,7 @@ const cardVariants = {
 };
 
 export default function Dashboard({ onLogout }) {
+    const [selectedMenu, setSelectedMenu] = useState('dashboard');
     const [classesTab, setClassesTab] = useState('all');
     const [addStudentDialogOpen, setAddStudentDialogOpen] = useState(false);
     const [addClassDialogOpen, setAddClassDialogOpen] = useState(false);
@@ -132,52 +133,11 @@ export default function Dashboard({ onLogout }) {
 
     return (
         <Layout style={{ minHeight: '100vh' }}>
-            <Sider
-                width="10%"
-                style={{
-                    background: '#fff',
-                    borderRight: '1px solid #f0f0f0',
-                    display: 'flex',
-                    flexDirection: 'column'
-                }}
-            >
-                <div style={{ flex: 1 }}>
-                    {/* Top section - can add menu items here later */}
-                </div>
-
-                {/* Profile Card at bottom */}
-                <motion.div
-                    initial="hidden"
-                    animate="visible"
-                    variants={cardVariants}
-                    custom={0}
-                >
-                    <Card
-                        style={{
-                            margin: 16,
-                            borderRadius: 8,
-                        }}
-                        bordered={false}
-                    >
-                        <Space direction="vertical" align="center" style={{ width: '100%' }}>
-                            <Avatar
-                                size={80}
-                                src={user?.avatar || ""}
-                            >
-                                {user?.name?.[0]?.toUpperCase()}
-                            </Avatar>
-                            <div style={{ textAlign: 'center' }}>
-                                <Title level={5} style={{ margin: 0, marginBottom: 4 }}>
-                                    {user?.name || 'User'}
-                                </Title>
-                                <Text type="secondary" style={{ fontSize: 12 }}>
-                                    {user?.email || 'No email'}
-                                </Text>
-                            </div>
-                        </Space>
-                    </Card>
-                </motion.div>
-            </Sider>
+            <DashboardSider
+                user={user}
+                selectedMenu={selectedMenu}
+                setSelectedMenu={setSelectedMenu}
+            />
 
             <Layout>
                 <Header
@@ -191,7 +151,7 @@ export default function Dashboard({ onLogout }) {
                     }}
                 >
                     <Title level={4} style={{ margin: 0, fontWeight: 600 }}>
-                        SchoolMoney
+                        Dashboard
                     </Title>
                     <Button
                         icon={<LogoutOutlined />}
