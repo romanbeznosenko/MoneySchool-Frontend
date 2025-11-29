@@ -6,9 +6,22 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
-    cors: {
-      origin: 'http://localhost:8080', // OR '*'
-      credentials: true,
+    proxy: {
+      '/api': {
+        target: 'https://api.dev.schoolmoney.gratify.com.pl',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/auth': {
+        target: 'https://api.dev.schoolmoney.gratify.com.pl',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/csrf': {
+        target: 'https://api.dev.schoolmoney.gratify.com.pl',
+        changeOrigin: true,
+        secure: false,
+      },
     },
   },
 })

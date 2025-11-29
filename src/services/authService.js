@@ -30,8 +30,15 @@ export const authService = {
                 throw new Error('Password is required');
             }
 
+            // Get CSRF token before login (required for session authentication)
+            console.log('Fetching CSRF token...');
+            const csrfResponse = await authApi.getCsrfToken();
+            console.log('CSRF token received:', csrfResponse);
+            console.log('Cookies after CSRF:', document.cookie);
+
             const requestDto = new LoginRequestDto(email, password, staySignedIn);
 
+            console.log('Attempting login with credentials...');
             const apiResponse = await authApi.login(requestDto);
 
             const responseDto = new AuthResponseDto(apiResponse);

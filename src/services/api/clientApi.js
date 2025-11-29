@@ -1,7 +1,8 @@
 import axios from 'axios';
 import "./types";
 
-const API_BASE_URL = 'http://localhost:8080';
+// Use relative URL for proxy in dev, or full URL from env for production
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
 
 /**
  * Configured axios instance for API requests
@@ -12,6 +13,9 @@ export const apiClient = axios.create({
     baseURL: API_BASE_URL,
     timeout: 30000,
     withCredentials: true,
+    withXSRFToken: true,
+    xsrfCookieName: "XSRF-TOKEN",
+    xsrfHeaderName: "X-XSRF-TOKEN",
     headers: {
         'Content-Type': 'application/json',
     },
