@@ -10,6 +10,7 @@ export const useStudents = (user) => {
         try {
             setLoading(true);
             const response = await studentService.getUserStudents(1, 10);
+            console.debug('[useStudents] fetched students response:', response);
             setStudents(response.students);
         } catch (err) {
             console.error('Failed to fetch students:', err);

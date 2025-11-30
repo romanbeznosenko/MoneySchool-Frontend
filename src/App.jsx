@@ -6,6 +6,8 @@ import LoginForm from './components/LoginForm';
 import RegisterForm from './components/RegisterForm';
 import ConfirmRegistration from './components/ConfirmRegistration';
 import Dashboard from './components/Dashboard';
+import ProfilePage from './components/ProfilePage';
+import StudentsPage from './components/StudentsPage';
 import { authService } from './services/authService';
 
 const pageVariants = {
@@ -185,6 +187,28 @@ function AppContent() {
         element={
           isAuthenticated ? (
             <Dashboard onLogout={handleLogout} />
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
+
+      <Route
+        path="/students"
+        element={
+          isAuthenticated ? (
+            <StudentsPage />
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
+
+      <Route
+        path="/profile"
+        element={
+          isAuthenticated ? (
+            <ProfilePage />
           ) : (
             <Navigate to="/login" replace />
           )

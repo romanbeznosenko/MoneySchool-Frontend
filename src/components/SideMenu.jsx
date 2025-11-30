@@ -1,4 +1,5 @@
 import { Layout, Card, Typography, Avatar, Menu } from 'antd';
+import { useNavigate } from 'react-router-dom';
 import {
     DashboardOutlined,
     TeamOutlined,
@@ -24,14 +25,20 @@ const cardVariants = {
 };
 
 export default function SideMenu({ user, selectedMenu, setSelectedMenu }) {
+    const navigate = useNavigate();
+
     return (
         <Sider
-            width="10%"
+            width={240}
             style={{
                 background: '#fff',
                 borderRight: '1px solid #f0f0f0',
                 display: 'flex',
-                flexDirection: 'column'
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                minHeight: '100vh',
+                height: '100vh',
+                position: 'relative',
             }}
         >
             {/* Title Section */}
@@ -41,11 +48,35 @@ export default function SideMenu({ user, selectedMenu, setSelectedMenu }) {
                 </Title>
             </div>
 
-            <div style={{ padding: '16px 0', flex: 1 }}>
+            {/* Menu — allow scrolling if it grows. Add bottom padding so it doesn't get hidden
+                behind the absolutely positioned profile card. */}
+            <div style={{ padding: '16px 0', paddingBottom: 120, flex: 1, overflowY: 'auto' }}>
                 <Menu
                     mode="inline"
                     selectedKeys={[selectedMenu]}
-                    onClick={({ key }) => setSelectedMenu(key)}
+                    onClick={({ key }) => {
+                        setSelectedMenu(key);
+                        // navigate to respective route for main items
+                        switch (key) {
+                            case 'dashboard':
+                                navigate('/dashboard');
+                                break;
+                            case 'students':
+                                navigate('/students');
+                                break;
+                            case 'collections':
+                                navigate('/collections');
+                                break;
+                            case 'finance':
+                                navigate('/finance');
+                                break;
+                            case 'messages':
+                                navigate('/messages');
+                                break;
+                            default:
+                                break;
+                        }
+                    }}
                     style={{ border: 'none' }}
                     items={[
                         {
@@ -77,8 +108,8 @@ export default function SideMenu({ user, selectedMenu, setSelectedMenu }) {
                 />
             </div>
 
-            {/* Profile Card at bottom */}
-            <div style={{ marginTop: 'auto' }}>
+            {/* Profile Card at bottom (absolute pinned) */}
+            <div style={{ position: 'absolute', left: 0, right: 0, bottom: 16, flexShrink: 0 }}>
                 <motion.div
                     initial="hidden"
                     animate="visible"
@@ -88,43 +119,43 @@ export default function SideMenu({ user, selectedMenu, setSelectedMenu }) {
                     <Card
                         style={{
                             margin: 16,
-                            borderRadius: 8,
+                            borderRadius: 25,
+                            // subtle elevation to match dashboard cards
+                            boxShadow: '0 6px 12px rgba(15, 15, 15, 0.04)',
                         }}
                         bordered={false}
+                        onClick={() => navigate('/profile')}
+                        hoverable
+                        bodyStyle={{ padding: 12, cursor: 'pointer' }}
                     >
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                             <Avatar
-                                size={40}
-                                src={user?.avatar || ""}
+                                size={48}
+                                // avoid passing empty string to `src` (causes React warning)
+                                src={user?.avatar || null}
                                 style={{ flexShrink: 0 }}
                             >
                                 {user?.name?.[0]?.toUpperCase()}
                             </Avatar>
                             <div style={{ flex: 1, minWidth: 0 }}>
-                                <Title
-                                    level={5}
-                                    style={{
+                                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                    <div style={{
+                                        fontSize: 15,
+                                        fontWeight: 700,
                                         margin: 0,
-                                        marginBottom: 4,
                                         overflow: 'hidden',
                                         textOverflow: 'ellipsis',
                                         whiteSpace: 'nowrap'
-                                    }}
-                                >
-                                    {user?.name || 'User'}
-                                </Title>
-                                <Text
-                                    type="secondary"
-                                    style={{
+                                    }}>{user?.name || 'User'}</div>
+                                    <div style={{
                                         fontSize: 12,
-                                        display: 'block',
+                                        color: '#6b6b6b',
+                                        marginTop: 4,
                                         overflow: 'hidden',
                                         textOverflow: 'ellipsis',
                                         whiteSpace: 'nowrap'
-                                    }}
-                                >
-                                    {user?.email || 'No email'}
-                                </Text>
+                                    }}>{user?.email || 'No email'}</div>
+                                </div>
                             </div>
                         </div>
                     </Card>
