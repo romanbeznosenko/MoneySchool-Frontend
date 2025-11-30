@@ -6,27 +6,37 @@ export const useUser = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    useEffect(() => {
-        const fetchUser = async () => {
+    const fetchUser = async () => {
+        try {
+            setLoading(true);
+            const userData = await userService.getUser();
+            setUser(userData);
             try {
-                setLoading(true);
-                const userData = await userService.getUser();
-                setUser(userData);
-            } catch (err) {
-                console.error('Failed to fetch user:', err);
-                setError(err.message);
+                sessionStorage.setItem('user', JSON.stringify(userData));
+            } catch (_) {}
+            setError(null);
+            return userData;
+        } catch (err) {
+            console.error('Failed to fetch user:', err);
+            setError(err.message);
 
-                const storedUser = sessionStorage.getItem('user');
-                if (storedUser) {
-                    setUser(JSON.parse(storedUser));
-                }
-            } finally {
-                setLoading(false);
+            const storedUser = sessionStorage.getItem('user');
+            if (storedUser) {
+                setUser(JSON.parse(storedUser));
             }
-        };
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    };
 
+    useEffect(() => {
         fetchUser();
     }, []);
 
-    return { user, loading, error };
+    const refreshUser = async () => {
+        return await fetchUser();
+    };
+
+    return { user, loading, error, refreshUser };
 };
