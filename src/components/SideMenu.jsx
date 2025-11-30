@@ -38,7 +38,10 @@ export default function SideMenu({ user, selectedMenu, setSelectedMenu }) {
                 justifyContent: 'space-between',
                 minHeight: '100vh',
                 height: '100vh',
-                position: 'relative',
+                position: 'fixed',
+                left: 0,
+                top: 0,
+                zIndex: 100,
             }}
         >
             {/* Title Section */}

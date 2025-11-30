@@ -141,7 +141,7 @@ export default function Dashboard({ onLogout }) {
                 setSelectedMenu={setSelectedMenu}
             />
 
-            <Layout>
+            <Layout style={{ marginLeft: 240 }}>
                 <Header
                     style={{
                         background: '#fff',
@@ -167,7 +167,7 @@ export default function Dashboard({ onLogout }) {
                 </Header>
 
                 <Content style={{ padding: '24px', background: '#fafafa', display: 'flex', justifyContent: 'center' }}>
-                    <div style={{ width: '50%' }}>
+                    <div style={{ width: '70%' }}>
                         <Row gutter={[0, 24]}>
                             <Col span={24}>
                                 <Text
