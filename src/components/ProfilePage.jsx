@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Layout, Card, Typography, Form, Input, Button, Avatar, Upload, message, Spin, Modal } from 'antd';
-import { UploadOutlined } from '@ant-design/icons';
+import { UploadOutlined, LogoutOutlined } from '@ant-design/icons';
 import DashboardSider from './SideMenu';
 import { useUser } from '../hooks/useUser';
 import { userService } from '../services/userService';
 
-const { Content } = Layout;
+const { Content, Header } = Layout;
 const { Title } = Typography;
 
-export default function ProfilePage() {
+export default function ProfilePage({ onLogout }) {
     const { user, loading: userLoading, refreshUser } = useUser();
     const [loading, setLoading] = useState(false);
     const [passwordModalVisible, setPasswordModalVisible] = useState(false);
@@ -120,7 +120,30 @@ export default function ProfilePage() {
     return (
         <Layout style={{ minHeight: '100vh' }}>
             <DashboardSider user={user} selectedMenu={'profile'} setSelectedMenu={() => {}} />
-            <Layout>
+            <Layout style={{ marginLeft: 240 }}>
+                <Header
+                    style={{
+                        background: '#fff',
+                        padding: '0 24px',
+                        borderBottom: '1px solid #f0f0f0',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                    }}
+                >
+                    <Title level={4} style={{ margin: 0, fontWeight: 600 }}>
+                        My Profile
+                    </Title>
+                    <Button
+                        icon={<LogoutOutlined />}
+                        onClick={onLogout}
+                        style={{
+                            borderColor: '#d9d9d9',
+                        }}
+                    >
+                        Logout
+                    </Button>
+                </Header>
                 <Content style={{ padding: 24, display: 'flex', justifyContent: 'center', background: '#fafafa' }}>
                     <div style={{ width: 600 }}>
                         <Card style={{ borderRadius: 25, padding: 24, boxShadow: '0 6px 12px rgba(15,15,15,0.04)' }}>

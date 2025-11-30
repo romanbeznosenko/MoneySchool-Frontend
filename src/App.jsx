@@ -197,7 +197,7 @@ function AppContent() {
         path="/students"
         element={
           isAuthenticated ? (
-            <StudentsPage />
+            <StudentsPage onLogout={handleLogout} />
           ) : (
             <Navigate to="/login" replace />
           )
@@ -208,7 +208,7 @@ function AppContent() {
         path="/profile"
         element={
           isAuthenticated ? (
-            <ProfilePage />
+            <ProfilePage onLogout={handleLogout} />
           ) : (
             <Navigate to="/login" replace />
           )
