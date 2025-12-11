@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
     Layout,
     Card,
@@ -28,6 +28,7 @@ import DashboardSider from './SideMenu';
 import { useUser } from './../hooks/useUser';
 import { useStudents } from './../hooks/useStudents';
 import { useClasses } from './../hooks/useClasses';
+import { financeService } from '../services/financeService';
 
 const { Header, Content, Footer } = Layout;
 const { Title, Text } = Typography;
@@ -45,6 +46,7 @@ const cardVariants = {
 };
 
 export default function Dashboard({ onLogout }) {
+    // All hooks first
     const [selectedMenu, setSelectedMenu] = useState('dashboard');
     const [classesTab, setClassesTab] = useState('all');
     const [addStudentDialogOpen, setAddStudentDialogOpen] = useState(false);
@@ -78,6 +80,27 @@ export default function Dashboard({ onLogout }) {
         handleClassDelete,
     } = useClasses(user, classesTab === 'all' ? 0 : 1);
 
+    // Finance account hooks
+    const [financeAccount, setFinanceAccount] = useState(null);
+    const [financeLoading, setFinanceLoading] = useState(true);
+    const [financeError, setFinanceError] = useState(null);
+
+    useEffect(() => {
+        const fetchFinanceAccount = async () => {
+            try {
+                setFinanceLoading(true);
+                const account = await financeService.getFinanceAccount();
+                setFinanceAccount(account);
+            } catch (err) {
+                setFinanceError(err.message || 'Failed to load finance account');
+            } finally {
+                setFinanceLoading(false);
+            }
+        };
+
+        fetchFinanceAccount();
+    }, []);
+
     const handleStudentClick = (student) => {
         handleStudentClickBase(student);
         setStudentDetailsDialogOpen(true);
@@ -88,6 +111,7 @@ export default function Dashboard({ onLogout }) {
         setClassDetailsDialogOpen(true);
     };
 
+    // Early returns for loading/error can come after all hooks
     if (loading) {
         return (
             <div style={{
@@ -132,6 +156,7 @@ export default function Dashboard({ onLogout }) {
             children: null,
         },
     ];
+
 
     return (
         <Layout style={{ minHeight: '100vh' }}>
@@ -228,14 +253,29 @@ export default function Dashboard({ onLogout }) {
                                     <Title level={4} style={{ margin: 0, textAlign: 'left', marginBottom: 8 }}>
                                         Account Balance
                                     </Title>
-                                    <Text type="primary" style={{ textAlign: "left", display: "block" }}>
-                                        In development
-                                    </Text>
+
+                                    {financeLoading ? (
+                                        <div style={{ textAlign: 'center', padding: '32px 0' }}>
+                                            <Spin />
+                                        </div>
+                                    ) : financeError ? (
+                                        <Text type="danger" style={{ textAlign: 'left', display: 'block' }}>
+                                            {financeError}
+                                        </Text>
+                                    ) : (
+                                        <>
+                                            <Text type="primary" style={{ textAlign: "left", display: "block" }}>
+                                                {financeAccount?.balance?.toLocaleString('en-US', { style: 'currency', currency: 'PLN' })}
+                                            </Text>
+                                        </>
+                                    )}
+
                                     <Text type="primary" style={{ textAlign: 'left', display: 'block' }}>
                                         Manage Your Account
                                     </Text>
                                 </Card>
                             </Col>
+
                             {/* Students Section */}
                             <Col span={24}>
                                 <motion.div

@@ -75,4 +75,18 @@
  * @typedef {CustomResponse<UserData>} UserResponse
  */
 
+/**
+ * Finance account data
+ * @typedef {Object} FinanceAccount
+ * @property {number} id - Account ID
+ * @property {string} iban - Account name
+ * @property {number} balance - Account balance
+ * @property {boolean} isTreasurerAccount - Account currency (e.g., "USD", "EUR")
+ */
+
+/**
+ * Finance account response
+ * @typedef {CustomResponse<FinanceAccount>} FinanceAccountResponse
+ */
+
 export {};

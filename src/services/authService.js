@@ -31,10 +31,10 @@ export const authService = {
             }
 
             // Get CSRF token before login (required for session authentication)
-            console.log('Fetching CSRF token...');
-            const csrfResponse = await authApi.getCsrfToken();
-            console.log('CSRF token received:', csrfResponse);
-            console.log('Cookies after CSRF:', document.cookie);
+            // console.log('Fetching CSRF token...');
+            // const csrfResponse = await authApi.getCsrfToken();r
+            // console.log('CSRF token received:', csrfResponse);
+            // console.log('Cookies after CSRF:', document.cookie);
 
             const requestDto = new LoginRequestDto(email, password, staySignedIn);
 
