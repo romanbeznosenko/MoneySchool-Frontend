@@ -11,5 +11,20 @@ export const financeApi = {
     getFinanceAccount: async () => {
         const response = await apiClient.get('/api/finance-account/');
         return response.data;
+    },
+
+    /**
+     * Get user collections
+     * @param {Object} params
+     * @param {number} params.limit
+     * @param {number} params.page
+     * @param {boolean} params.isTreasurer
+     * @returns {Promise<CollectionsResponse>}
+     */
+    getCollections: async ({ limit = 10, page = 1, isTreasurer = false } = {}) => {
+        const response = await apiClient.get('/api/collection/list', {
+            params: { limit, page, isTreasurer },
+        });
+        return response.data;
     }
 };

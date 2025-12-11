@@ -101,6 +101,26 @@ export default function Dashboard({ onLogout }) {
         fetchFinanceAccount();
     }, []);
 
+    const [collections, setCollections] = useState([]);
+    const [collectionsLoading, setCollectionsLoading] = useState(true);
+    const [collectionsError, setCollectionsError] = useState(null);
+
+    useEffect(() => {
+        const fetchCollections = async () => {
+            try {
+                setCollectionsLoading(true);
+                const data = await financeService.getCollections({ limit: 5 });
+                setCollections(data);
+            } catch (err) {
+                setCollectionsError(err.message || 'Failed to load collections');
+            } finally {
+                setCollectionsLoading(false);
+            }
+        };
+
+        fetchCollections();
+    }, []);
+
     const handleStudentClick = (student) => {
         handleStudentClickBase(student);
         setStudentDetailsDialogOpen(true);
@@ -232,13 +252,13 @@ export default function Dashboard({ onLogout }) {
                                     }}
                                 >
                                     <Title level={4} style={{ margin: 0, textAlign: 'left', marginBottom: 8 }}>
-                                        Active Collections
+                                        My Collections
                                     </Title>
                                     <Text type="primary" style={{ textAlign: "left", display: "block" }}>
-                                        In development
+                                        {collections.length} {collections.length === 1 ? 'collection' : 'collections'}
                                     </Text>
                                     <Text type="primary" style={{ textAlign: 'left', display: 'block' }}>
-                                        View all
+                                        Manage Your Collections
                                     </Text>
                                 </Card>
                             </Col>
