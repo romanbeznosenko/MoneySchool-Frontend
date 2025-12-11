@@ -26,5 +26,12 @@ export const financeApi = {
             params: { limit, page, isTreasurer },
         });
         return response.data;
+    },
+
+    getMyContributions: async ({ collectionId, page = 0, limit = 20 } = {}) => {
+        const response = await apiClient.get('/api/contribution/my-contributions', {
+            params: { collectionId, page, limit },
+        });
+        return response.data;
     }
 };

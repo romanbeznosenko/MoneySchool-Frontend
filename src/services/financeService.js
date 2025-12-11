@@ -47,6 +47,30 @@ export class CollectionDto {
     }
 }
 
+export class TransactionDto {
+    constructor({
+        contributionId,
+        collection,
+        student,
+        payer,
+        amount,
+        note,
+        status,
+        createdAt,
+        processedAt,
+    }) {
+        this.id = contributionId;
+        this.collection = collection;
+        this.student = student;
+        this.payer = payer;
+        this.amount = amount;
+        this.note = note;
+        this.status = status;
+        this.createdAt = createdAt;
+        this.processedAt = processedAt;
+    }
+}
+
 
 /**
  * Finance service for handling finance account API calls
@@ -89,6 +113,30 @@ export const financeService = {
         } catch (error) {
             console.error('Collections service error:', error);
             throw new Error(error.message || 'Failed to fetch collections');
+        }
+    },
+
+    /**
+     * Fetch user's contribution history
+     * @param {Object} params
+     * @param {string} params.collectionId - optional collection filter
+     * @param {number} params.page
+     * @param {number} params.limit
+     * @returns {Promise<TransactionDto[]>}
+     */
+    getMyContributions: async ({ collectionId, page = 0, limit = 20 } = {}) => {
+        try {
+            const response = await financeApi.getMyContributions({ collectionId, page, limit });
+
+            if (!response.data?.data) {
+                throw new Error('No contributions data returned from API');
+            }
+
+            // Map each contribution to TransactionDto
+            return response.data.data.map(item => new TransactionDto(item));
+        } catch (error) {
+            console.error('Transactions service error:', error);
+            throw new Error(error.message || 'Failed to fetch contributions');
         }
     },
 };

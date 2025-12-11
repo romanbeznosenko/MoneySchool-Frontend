@@ -121,6 +121,26 @@ export default function Dashboard({ onLogout }) {
         fetchCollections();
     }, []);
 
+    const [transactions, setTransactions] = useState([]);
+    const [transactionsLoading, setTransactionsLoading] = useState(true);
+    const [transactionsError, setTransactionsError] = useState(null);
+
+    useEffect(() => {
+        const fetchTransactions = async () => {
+            try {
+                setTransactionsLoading(true);
+                const data = await financeService.getMyContributions({ page: 0, limit: 10 });
+                setTransactions(data);
+            } catch (err) {
+                setTransactionsError(err.message || 'Failed to load transactions');
+            } finally {
+                setTransactionsLoading(false);
+            }
+        };
+
+        fetchTransactions();
+    }, []);
+
     const handleStudentClick = (student) => {
         handleStudentClickBase(student);
         setStudentDetailsDialogOpen(true);
@@ -463,7 +483,7 @@ export default function Dashboard({ onLogout }) {
                                         title={
                                             <div>
                                                 <Title level={5} style={{ margin: 0, marginBottom: 4 }}>
-                                                    Last of transactions
+                                                    Last transactions
                                                 </Title>
                                                 <Text type="secondary" style={{ fontSize: 14, fontWeight: 'normal' }}>
                                                     Your deposit and withdrawal history
@@ -475,10 +495,40 @@ export default function Dashboard({ onLogout }) {
                                             paddingTop: 16,
                                         }}
                                     >
-
-                                        <Text type="primary" style={{ display: 'block', textAlign: 'center', padding: '32px 0' }}>
-                                            In development
-                                        </Text>
+                                        {transactionsLoading ? (
+                                            <div style={{ textAlign: 'center', padding: '32px 0' }}>
+                                                <Spin />
+                                            </div>
+                                        ) : transactionsError ? (
+                                            <Text type="danger" style={{ display: 'block', textAlign: 'center', padding: '32px 0' }}>
+                                                {transactionsError}
+                                            </Text>
+                                        ) : transactions.length === 0 ? (
+                                            <Text type="secondary" style={{ display: 'block', textAlign: 'center', padding: '32px 0' }}>
+                                                No transactions found.
+                                            </Text>
+                                        ) : (
+                                            <List
+                                                itemLayout="horizontal"
+                                                dataSource={transactions}
+                                                renderItem={(item) => (
+                                                    <List.Item>
+                                                        <List.Item.Meta
+                                                            avatar={<Avatar src={item.student?.avatar || item.payer?.avatar} />}
+                                                            title={`${item.student?.firstName || ''} ${item.student?.lastName || ''} - ${item.collection?.title}`}
+                                                            description={
+                                                                <>
+                                                                    <Text>{item.note || ''}</Text>
+                                                                    <br />
+                                                                    <Text strong>{item.amount.toLocaleString('en-US', { style: 'currency', currency: 'PLN' })}</Text>
+                                                                    <Text type="secondary"> | {new Date(item.createdAt).toLocaleDateString()}</Text>
+                                                                </>
+                                                            }
+                                                        />
+                                                    </List.Item>
+                                                )}
+                                            />
+                                        )}
                                     </Card>
                                 </motion.div>
                             </Col>
